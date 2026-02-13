@@ -40,18 +40,14 @@ try:
     def _patched_get_api_info(self, all_endpoints: bool = False):
         api_info = {"named_endpoints": {}, "unnamed_endpoints": {}}
         for fn in self.fns.values():
-            fn_callable = getattr(fn, "fn", None)
-            api_name = getattr(fn, "api_name", None)
-            show_api = getattr(fn, "show_api", True)
-
-            if not fn_callable or api_name is False:
+            if not fn.fn or fn.api_name is False:
                 continue
-            if not all_endpoints and not show_api:
+            if not all_endpoints and not fn.show_api:
                 continue
-            api_info["named_endpoints"][api_name or str(id(fn))] = {
+            api_info["named_endpoints"][fn.api_name or str(id(fn))] = {
                 "parameters": [],
                 "returns": [],
-                "show_api": show_api,
+                "show_api": fn.show_api,
             }
         return api_info
 
@@ -7651,9 +7647,10 @@ if __name__ == "__main__":
     ]
 
     demo.launch(
-        server_name=settings.gradio_host,
+        server_name="127.0.0.1",
         server_port=settings.gradio_port,
         share=False,
         inbrowser=False,
+        show_api=False,
         allowed_paths=allowed_paths
     )
