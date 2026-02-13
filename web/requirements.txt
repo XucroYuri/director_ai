@@ -2,9 +2,10 @@
 # Install with: pip install -r requirements.txt
 
 # Core Web Framework
-gradio>=4.0.0
+gradio>=4.44.0,<5.0.0
 fastapi>=0.100.0
 uvicorn>=0.22.0
+huggingface_hub>=0.19.3,<1.0.0
 
 # HTTP Client
 requests>=2.28.0
