@@ -7,6 +7,7 @@ import '../models/screenplay.dart';
 import '../models/script.dart';
 import '../utils/video_cache_manager.dart';
 import 'chat_screen.dart' show VideoPlayerManager;
+import '../theme/app_theme.dart';
 
 /// 场景媒体查看器 - 支持左右滑动查看不同场景的图片/视频
 class SceneMediaViewer extends StatefulWidget {
@@ -161,6 +162,8 @@ class _SceneMediaViewerState extends State<SceneMediaViewer> with WidgetsBinding
       _currentVideoUrl = url;
 
       if (mounted) {
+        final colorScheme = context.colors;
+        final tokens = context.themeTokens;
         _chewieController = ChewieController(
           videoPlayerController: _videoController!,
           autoPlay: true,
@@ -168,10 +171,10 @@ class _SceneMediaViewerState extends State<SceneMediaViewer> with WidgetsBinding
           showControls: true,
           aspectRatio: _videoController!.value.aspectRatio,
           materialProgressColors: ChewieProgressColors(
-            playedColor: const Color(0xFF8B5CF6),
-            handleColor: const Color(0xFFEC4899),
-            backgroundColor: const Color(0xFFE5E7EB),
-            bufferedColor: const Color(0xFFD1D5DB),
+            playedColor: colorScheme.primary,
+            handleColor: colorScheme.secondary,
+            backgroundColor: tokens.inputSurface,
+            bufferedColor: tokens.borderStrong,
           ),
         );
         
@@ -190,8 +193,10 @@ class _SceneMediaViewerState extends State<SceneMediaViewer> with WidgetsBinding
 
   @override
   Widget build(BuildContext context) {
+    final bgColor = context.isDarkMode ? Colors.black : const Color(0xFF0B0F14);
+
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor: bgColor,
       extendBodyBehindAppBar: true,
       appBar: _buildAppBar(),
       body: Stack(
@@ -290,9 +295,10 @@ class _SceneMediaViewerState extends State<SceneMediaViewer> with WidgetsBinding
   }
 
   Widget _buildImageMedia(Scene scene) {
+    final colorScheme = context.colors;
     // 检查图片状态
     if (scene.status == SceneStatus.imageGenerating) {
-      return _buildLoadingWidget('正在生成分镜图...', const Color(0xFF8B5CF6), scene);
+      return _buildLoadingWidget('正在生成分镜图...', colorScheme.primary, scene);
     }
 
     if (scene.imageUrl == null || scene.imageUrl!.isEmpty) {
@@ -312,7 +318,7 @@ class _SceneMediaViewerState extends State<SceneMediaViewer> with WidgetsBinding
             return Center(
               child: CircularProgressIndicator(
                 value: progress.progress,
-                color: const Color(0xFF8B5CF6),
+                color: colorScheme.primary,
               ),
             );
           },
@@ -325,14 +331,15 @@ class _SceneMediaViewerState extends State<SceneMediaViewer> with WidgetsBinding
   }
 
   Widget _buildVideoMedia(Scene scene) {
+    final colorScheme = context.colors;
     // 检查视频状态
     if (scene.status == SceneStatus.videoGenerating || scene.status == SceneStatus.imageGenerating) {
-      return _buildLoadingWidget('正在生成分镜视频...', const Color(0xFFEC4899), scene);
+      return _buildLoadingWidget('正在生成分镜视频...', colorScheme.secondary, scene);
     }
 
     if (scene.videoUrl == null || scene.videoUrl!.isEmpty) {
       if (scene.status == SceneStatus.imageCompleted) {
-        return _buildLoadingWidget('等待生成视频...', const Color(0xFFEC4899), scene);
+        return _buildLoadingWidget('等待生成视频...', colorScheme.secondary, scene);
       }
       return _buildPlaceholderWidget('等待生成视频', scene);
     }
@@ -356,7 +363,7 @@ class _SceneMediaViewerState extends State<SceneMediaViewer> with WidgetsBinding
         });
       }
       return Center(
-        child: CircularProgressIndicator(color: const Color(0xFF8B5CF6)),
+        child: CircularProgressIndicator(color: colorScheme.primary),
       );
     }
 
@@ -432,13 +439,14 @@ class _SceneMediaViewerState extends State<SceneMediaViewer> with WidgetsBinding
   }
 
   Widget _buildErrorWidget(String message) {
+    final colorScheme = context.colors;
     return Center(
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(
+          Icon(
             Icons.error_outline,
-            color: Colors.red,
+            color: colorScheme.error,
             size: 48,
           ),
           const SizedBox(height: 16),
@@ -455,6 +463,7 @@ class _SceneMediaViewerState extends State<SceneMediaViewer> with WidgetsBinding
   }
 
   Widget _buildIndicator() {
+    final colorScheme = context.colors;
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: List.generate(
@@ -466,7 +475,7 @@ class _SceneMediaViewerState extends State<SceneMediaViewer> with WidgetsBinding
           height: 8,
           decoration: BoxDecoration(
             color: _currentIndex == index
-                ? const Color(0xFF8B5CF6)
+                ? colorScheme.primary
                 : Colors.white.withOpacity(0.4),
             borderRadius: BorderRadius.circular(4),
           ),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/screenplay_draft.dart';
+import '../theme/app_theme.dart';
 
 /// 剧本草稿场景编辑卡片
 /// 用于在剧本确认页面中展示和编辑单个场景
@@ -34,15 +35,17 @@ class _SceneReviewCardState extends State<SceneReviewCard> {
 
   @override
   Widget build(BuildContext context) {
+    final tokens = context.themeTokens;
+
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: tokens.surfaceElevated,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: const Color(0xFFE5E7EB), width: 0.5),
+        border: Border.all(color: tokens.borderSubtle, width: 1),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.03),
+            color: Colors.black.withOpacity(context.isDarkMode ? 0.24 : 0.04),
             offset: const Offset(0, 2),
             blurRadius: 8,
           ),
@@ -68,11 +71,11 @@ class _SceneReviewCardState extends State<SceneReviewCard> {
                   const SizedBox(height: 8),
 
                   // 情绪标签
-                  _buildMoodTags(),
+                  _buildMoodTags(context),
                   const SizedBox(height: 8),
 
                   // 旁白（只读，点击展开后可编辑）
-                  _buildNarrationDisplay(),
+                  _buildNarrationDisplay(context),
                 ],
               ),
             ),
@@ -87,13 +90,15 @@ class _SceneReviewCardState extends State<SceneReviewCard> {
 
   /// 构建展开的编辑内容
   Widget _buildExpandedContent(BuildContext context) {
+    final tokens = context.themeTokens;
+
     return Container(
       padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // 分隔线
-          const Divider(height: 1, thickness: 0.5, color: Color(0xFFE5E7EB)),
+          Divider(height: 1, thickness: 1, color: tokens.borderSubtle),
           const SizedBox(height: 12),
 
           // 旁白编辑区
@@ -127,12 +132,12 @@ class _SceneReviewCardState extends State<SceneReviewCard> {
   }
 
   /// 构建旁白显示（只读）
-  Widget _buildNarrationDisplay() {
+  Widget _buildNarrationDisplay(BuildContext context) {
     return Text(
       widget.scene.narration,
-      style: const TextStyle(
+      style: TextStyle(
         fontSize: 14,
-        color: Color(0xFF6B7280),
+        color: context.themeTokens.textMuted,
         height: 1.5,
       ),
     );
@@ -140,6 +145,9 @@ class _SceneReviewCardState extends State<SceneReviewCard> {
 
   /// 构建场景标题
   Widget _buildHeader(BuildContext context) {
+    final colorScheme = context.colors;
+    final tokens = context.themeTokens;
+
     return Row(
       children: [
         // 场景编号
@@ -147,7 +155,7 @@ class _SceneReviewCardState extends State<SceneReviewCard> {
           width: 28,
           height: 28,
           decoration: BoxDecoration(
-            color: const Color(0xFF8B5CF6),
+            color: colorScheme.primary,
             borderRadius: BorderRadius.circular(6),
           ),
           child: Center(
@@ -167,10 +175,10 @@ class _SceneReviewCardState extends State<SceneReviewCard> {
         Expanded(
           child: Text(
             '场景 ${widget.scene.sceneId} / ${widget.totalScenes}',
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 15,
               fontWeight: FontWeight.w600,
-              color: Color(0xFF1C1C1E),
+              color: colorScheme.onSurface,
               letterSpacing: -0.5,
             ),
           ),
@@ -180,7 +188,7 @@ class _SceneReviewCardState extends State<SceneReviewCard> {
         Icon(
           _isExpanded ? Icons.expand_less : Icons.expand_more,
           size: 20,
-          color: const Color(0xFF9CA3AF),
+          color: tokens.textMuted,
         ),
 
         // 重新生成按钮
@@ -190,7 +198,7 @@ class _SceneReviewCardState extends State<SceneReviewCard> {
             icon: const Icon(Icons.refresh, size: 18),
             onPressed: widget.onRegenerate,
             tooltip: '重新生成此场景',
-            color: const Color(0xFF8B5CF6),
+            color: colorScheme.primary,
             padding: const EdgeInsets.all(4),
             constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
           ),
@@ -200,7 +208,7 @@ class _SceneReviewCardState extends State<SceneReviewCard> {
   }
 
   /// 构建情绪标签
-  Widget _buildMoodTags() {
+  Widget _buildMoodTags(BuildContext context) {
     return Wrap(
       spacing: 6,
       children: [
@@ -213,7 +221,7 @@ class _SceneReviewCardState extends State<SceneReviewCard> {
         // 其他标签
         ...widget.scene.tags.take(3).map((tag) => _MoodChip(
               label: tag,
-              color: const Color(0xFF9CA3AF),
+              color: context.themeTokens.textMuted,
             )),
       ],
     );
@@ -221,17 +229,19 @@ class _SceneReviewCardState extends State<SceneReviewCard> {
 
   /// 构建情绪钩子编辑区
   Widget _buildEmotionalHookEditor(BuildContext context) {
+    final colorScheme = context.colors;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
           children: [
-            const Icon(Icons.auto_awesome, size: 16, color: Color(0xFF5856D6)),
+            Icon(Icons.auto_awesome, size: 16, color: colorScheme.tertiary),
             const SizedBox(width: 6),
-            const Text(
+            Text(
               '情绪钩子（可编辑）',
               style: TextStyle(
-                color: Color(0xFF1C1C1E),
+                color: colorScheme.onSurface,
                 fontWeight: FontWeight.w600,
                 fontSize: 13,
               ),
@@ -243,18 +253,7 @@ class _SceneReviewCardState extends State<SceneReviewCard> {
           maxLines: null,
           minLines: 1,
           textInputAction: TextInputAction.newline,
-          decoration: const InputDecoration(
-            hintText: '输入情绪钩子...',
-            hintStyle: TextStyle(color: Color(0x8C8C8E)),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.all(Radius.circular(10)),
-              borderSide: BorderSide.none,
-            ),
-            filled: true,
-            fillColor: Color(0xFFF3F4F6),
-            isDense: true,
-            contentPadding: EdgeInsets.all(12),
-          ),
+          decoration: _editorDecoration(context, '输入情绪钩子...'),
           style: const TextStyle(fontSize: 14),
           controller: TextEditingController(text: widget.scene.emotionalHook ?? '')
             ..selection = TextSelection.fromPosition(
@@ -268,17 +267,19 @@ class _SceneReviewCardState extends State<SceneReviewCard> {
 
   /// 构建人物描述编辑区
   Widget _buildCharacterDescriptionEditor(BuildContext context) {
+    final colorScheme = context.colors;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
           children: [
-            const Icon(Icons.person, size: 16, color: Color(0xFF8B5CF6)),
+            Icon(Icons.person, size: 16, color: colorScheme.primary),
             const SizedBox(width: 6),
-            const Text(
+            Text(
               '人物描述（可编辑）',
               style: TextStyle(
-                color: Color(0xFF1C1C1E),
+                color: colorScheme.onSurface,
                 fontWeight: FontWeight.w600,
                 fontSize: 13,
               ),
@@ -290,18 +291,7 @@ class _SceneReviewCardState extends State<SceneReviewCard> {
           maxLines: null,
           minLines: 2,
           textInputAction: TextInputAction.newline,
-          decoration: const InputDecoration(
-            hintText: '输入人物描述...',
-            hintStyle: TextStyle(color: Color(0x8C8C8E)),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.all(Radius.circular(10)),
-              borderSide: BorderSide.none,
-            ),
-            filled: true,
-            fillColor: Color(0xFFF3F4F6),
-            isDense: true,
-            contentPadding: EdgeInsets.all(12),
-          ),
+          decoration: _editorDecoration(context, '输入人物描述...'),
           style: const TextStyle(fontSize: 14),
           controller: TextEditingController(text: widget.scene.characterDescription)
             ..selection = TextSelection.fromPosition(
@@ -315,17 +305,19 @@ class _SceneReviewCardState extends State<SceneReviewCard> {
 
   /// 构建图片提示词编辑区
   Widget _buildImagePromptEditor(BuildContext context) {
+    final colorScheme = context.colors;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
           children: [
-            const Icon(Icons.image, size: 16, color: Color(0xFF8B5CF6)),
+            Icon(Icons.image, size: 16, color: colorScheme.primary),
             const SizedBox(width: 6),
-            const Text(
+            Text(
               '图片生成提示词（可编辑）',
               style: TextStyle(
-                color: Color(0xFF1C1C1E),
+                color: colorScheme.onSurface,
                 fontWeight: FontWeight.w600,
                 fontSize: 13,
               ),
@@ -337,18 +329,7 @@ class _SceneReviewCardState extends State<SceneReviewCard> {
           maxLines: null,
           minLines: 2,
           textInputAction: TextInputAction.newline,
-          decoration: const InputDecoration(
-            hintText: '输入图片生成提示词...',
-            hintStyle: TextStyle(color: Color(0x8C8C8E)),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.all(Radius.circular(10)),
-              borderSide: BorderSide.none,
-            ),
-            filled: true,
-            fillColor: Color(0xFFF3F4F6),
-            isDense: true,
-            contentPadding: EdgeInsets.all(12),
-          ),
+          decoration: _editorDecoration(context, '输入图片生成提示词...'),
           style: const TextStyle(fontSize: 13),
           controller: TextEditingController(text: widget.scene.imagePrompt)
             ..selection = TextSelection.fromPosition(
@@ -362,17 +343,19 @@ class _SceneReviewCardState extends State<SceneReviewCard> {
 
   /// 构建视频提示词编辑区
   Widget _buildVideoPromptEditor(BuildContext context) {
+    final colorScheme = context.colors;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
           children: [
-            const Icon(Icons.videocam, size: 16, color: Color(0xFF5856D6)),
+            Icon(Icons.videocam, size: 16, color: colorScheme.tertiary),
             const SizedBox(width: 6),
-            const Text(
+            Text(
               '视频生成提示词（可编辑）',
               style: TextStyle(
-                color: Color(0xFF1C1C1E),
+                color: colorScheme.onSurface,
                 fontWeight: FontWeight.w600,
                 fontSize: 13,
               ),
@@ -384,18 +367,7 @@ class _SceneReviewCardState extends State<SceneReviewCard> {
           maxLines: null,
           minLines: 2,
           textInputAction: TextInputAction.newline,
-          decoration: const InputDecoration(
-            hintText: '输入视频生成提示词...',
-            hintStyle: TextStyle(color: Color(0x8C8C8E)),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.all(Radius.circular(10)),
-              borderSide: BorderSide.none,
-            ),
-            filled: true,
-            fillColor: Color(0xFFF3F4F6),
-            isDense: true,
-            contentPadding: EdgeInsets.all(12),
-          ),
+          decoration: _editorDecoration(context, '输入视频生成提示词...'),
           style: const TextStyle(fontSize: 13),
           controller: TextEditingController(text: widget.scene.videoPrompt)
             ..selection = TextSelection.fromPosition(
@@ -409,17 +381,19 @@ class _SceneReviewCardState extends State<SceneReviewCard> {
 
   /// 构建旁白编辑器
   Widget _buildNarrationEditor(BuildContext context) {
+    final colorScheme = context.colors;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
           children: [
-            const Icon(Icons.edit_note, size: 18, color: Color(0xFF8B5CF6)),
+            Icon(Icons.edit_note, size: 18, color: colorScheme.primary),
             const SizedBox(width: 6),
-            const Text(
+            Text(
               '旁白（可编辑）',
               style: TextStyle(
-                color: Color(0xFF1C1C1E),
+                color: colorScheme.onSurface,
                 fontWeight: FontWeight.w600,
                 fontSize: 14,
               ),
@@ -431,16 +405,7 @@ class _SceneReviewCardState extends State<SceneReviewCard> {
           maxLines: null,
           minLines: 2,
           textInputAction: TextInputAction.newline,
-          decoration: const InputDecoration(
-            hintText: '输入旁白内容...',
-            hintStyle: TextStyle(color: Color(0x8C8C8E)),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.all(Radius.circular(10)),
-              borderSide: BorderSide.none,
-            ),
-            filled: true,
-            fillColor: Color(0xFFF3F4F6),
-          ),
+          decoration: _editorDecoration(context, '输入旁白内容...'),
           style: const TextStyle(fontSize: 15),
           controller: TextEditingController(text: widget.scene.narration)
             ..selection = TextSelection.fromPosition(
@@ -462,6 +427,22 @@ class _SceneReviewCardState extends State<SceneReviewCard> {
     } catch (e) {
       return Colors.grey;
     }
+  }
+
+  InputDecoration _editorDecoration(BuildContext context, String hintText) {
+    final tokens = context.themeTokens;
+    return InputDecoration(
+      hintText: hintText,
+      hintStyle: TextStyle(color: tokens.textMuted),
+      border: const OutlineInputBorder(
+        borderRadius: BorderRadius.all(Radius.circular(10)),
+        borderSide: BorderSide.none,
+      ),
+      filled: true,
+      fillColor: tokens.inputSurface,
+      isDense: true,
+      contentPadding: const EdgeInsets.all(12),
+    );
   }
 }
 

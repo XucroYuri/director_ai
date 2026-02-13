@@ -8,10 +8,12 @@ import 'package:url_launcher/url_launcher.dart';
 import '../providers/conversation_provider.dart';
 import '../providers/video_merge_provider.dart';
 import '../providers/chat_provider.dart';
+import '../providers/theme_provider.dart';
 import '../models/screenplay.dart';
 import '../models/script.dart';
 import '../services/video_merger_service.dart';
 import '../services/api_config_service.dart';
+import '../theme/app_theme.dart';
 
 /// 设置页面
 class SettingsScreen extends StatefulWidget {
@@ -24,73 +26,164 @@ class SettingsScreen extends StatefulWidget {
 class _SettingsScreenState extends State<SettingsScreen> {
   @override
   Widget build(BuildContext context) {
+    final colorScheme = context.colors;
+
     return Scaffold(
-      backgroundColor: const Color(0xFFFAF9FC),
+      backgroundColor: colorScheme.surface,
       appBar: AppBar(
-        title: const Text(
+        title: Text(
           '设置',
-          style: TextStyle(
-            fontSize: 17,
-            fontWeight: FontWeight.w600,
-            color: Color(0xFF1C1C1E),
-          ),
+          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                fontSize: 18,
+                fontWeight: FontWeight.w700,
+                color: colorScheme.onSurface,
+              ),
         ),
         centerTitle: true,
-        backgroundColor: Colors.white,
+        backgroundColor: colorScheme.surface.withOpacity(0.88),
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, color: Color(0xFF1C1C1E)),
+          icon: Icon(Icons.arrow_back_ios_new, color: colorScheme.onSurface),
           onPressed: () => Navigator.pop(context),
         ),
       ),
       body: Consumer2<ConversationProvider, VideoMergeProvider>(
         builder: (context, convProvider, mergeProvider, child) {
-          return ListView(
-            padding: const EdgeInsets.all(16),
-            children: [
-              // API 配置卡片
-              _buildApiConfigCard(context),
-
-              const SizedBox(height: 24),
-
-              // 缓存管理卡片
-              _buildCacheManagementCard(context, convProvider),
-
-              const SizedBox(height: 24),
-
-              // 数据库查看卡片
-              _buildDatabaseCard(context),
-
-              const SizedBox(height: 24),
-
-              // 视频合并卡片
-              _buildVideoMergeCard(context, mergeProvider),
-
-              const SizedBox(height: 24),
-
-              // 关于信息
-              _buildAboutCard(context),
-            ],
+          return Container(
+            decoration: BoxDecoration(gradient: context.themeTokens.appBackgroundGradient),
+            child: ListView(
+              padding: const EdgeInsets.all(16),
+              children: [
+                _buildThemeModeCard(context),
+                const SizedBox(height: 24),
+                _buildApiConfigCard(context),
+                const SizedBox(height: 24),
+                _buildCacheManagementCard(context, convProvider),
+                const SizedBox(height: 24),
+                _buildDatabaseCard(context),
+                const SizedBox(height: 24),
+                _buildVideoMergeCard(context, mergeProvider),
+                const SizedBox(height: 24),
+                _buildAboutCard(context),
+              ],
+            ),
           );
         },
       ),
     );
   }
 
-  /// API 配置卡片
-  Widget _buildApiConfigCard(BuildContext context) {
+  BoxDecoration _buildSectionDecoration(BuildContext context) {
+    final tokens = context.themeTokens;
+    return BoxDecoration(
+      color: tokens.surfaceElevated,
+      borderRadius: BorderRadius.circular(16),
+      border: Border.all(color: tokens.borderSubtle),
+      boxShadow: [
+        BoxShadow(
+          color: Colors.black.withOpacity(context.isDarkMode ? 0.28 : 0.06),
+          blurRadius: context.isDarkMode ? 20 : 12,
+          offset: const Offset(0, 4),
+        ),
+      ],
+    );
+  }
+
+  TextStyle _sectionTitleStyle(BuildContext context) {
+    return TextStyle(
+      fontSize: 16,
+      fontWeight: FontWeight.w700,
+      color: context.colors.onSurface,
+    );
+  }
+
+  TextStyle _sectionSubtitleStyle(BuildContext context) {
+    return TextStyle(
+      fontSize: 13,
+      color: context.themeTokens.textMuted,
+    );
+  }
+
+  Widget _buildThemeModeCard(BuildContext context) {
+    final ThemeProvider provider = context.watch<ThemeProvider>();
+    final tokens = context.themeTokens;
+
     return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
+      decoration: _buildSectionDecoration(context),
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(
+                  gradient: tokens.brandGradient,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(Icons.palette_outlined, color: Colors.white, size: 20),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('主题模式', style: _sectionTitleStyle(context)),
+                    const SizedBox(height: 2),
+                    Text('切换系统 / 浅色 / 深色', style: _sectionSubtitleStyle(context)),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          SegmentedButton<ThemeMode>(
+            showSelectedIcon: false,
+            segments: const <ButtonSegment<ThemeMode>>[
+              ButtonSegment<ThemeMode>(
+                value: ThemeMode.system,
+                icon: Icon(Icons.brightness_auto_outlined),
+                label: Text('系统'),
+              ),
+              ButtonSegment<ThemeMode>(
+                value: ThemeMode.light,
+                icon: Icon(Icons.light_mode_outlined),
+                label: Text('浅色'),
+              ),
+              ButtonSegment<ThemeMode>(
+                value: ThemeMode.dark,
+                icon: Icon(Icons.dark_mode_outlined),
+                label: Text('深色'),
+              ),
+            ],
+            selected: <ThemeMode>{provider.themeMode},
+            onSelectionChanged: (selection) {
+              if (selection.isNotEmpty) {
+                context.read<ThemeProvider>().setThemeMode(selection.first);
+              }
+            },
+          ),
+          const SizedBox(height: 8),
+          Text(
+            '当前：${provider.themeModeLabel}',
+            style: TextStyle(
+              fontSize: 12,
+              color: tokens.textMuted,
+            ),
           ),
         ],
       ),
+    );
+  }
+
+  /// API 配置卡片
+  Widget _buildApiConfigCard(BuildContext context) {
+    final tokens = context.themeTokens;
+
+    return Container(
+      decoration: _buildSectionDecoration(context),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -115,25 +208,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ),
                 ),
                 const SizedBox(width: 12),
-                const Expanded(
+                Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
                         'API 配置',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                          color: Color(0xFF1C1C1E),
-                        ),
+                        style: _sectionTitleStyle(context),
                       ),
-                      SizedBox(height: 2),
+                      const SizedBox(height: 2),
                       Text(
                         '配置各服务的 API Key',
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: Color(0xFF8E8E93),
-                        ),
+                        style: _sectionSubtitleStyle(context),
                       ),
                     ],
                   ),
@@ -228,7 +314,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               '提示：API Key 将保存在本地，仅用于此设备。',
               style: TextStyle(
                 fontSize: 12,
-                color: Color(0xFF8E8E93),
+                color: tokens.textMuted,
               ),
             ),
           ),
@@ -245,6 +331,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
     Color color,
     String url,
   ) {
+    final tokens = context.themeTokens;
+
     return InkWell(
       onTap: () => _launchUrl(url),
       borderRadius: BorderRadius.circular(0),
@@ -288,9 +376,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   const SizedBox(height: 2),
                   Text(
                     description,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 11,
-                      color: Color(0xFF8E8E93),
+                      color: tokens.textMuted,
                     ),
                   ),
                 ],
@@ -347,6 +435,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
     Color color,
     VoidCallback onTap,
   ) {
+    final colorScheme = context.colors;
+    final tokens = context.themeTokens;
+
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(0),
@@ -362,28 +453,28 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 children: [
                   Text(
                     label,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w500,
-                      color: Color(0xFF1C1C1E),
+                      color: colorScheme.onSurface,
                     ),
                   ),
                   const SizedBox(height: 2),
                   Text(
                     maskedKey,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 12,
-                      color: Color(0xFF8E8E93),
+                      color: tokens.textMuted,
                       fontFamily: 'monospace',
                     ),
                   ),
                 ],
               ),
             ),
-            const Icon(
+            Icon(
               Icons.chevron_right,
               size: 20,
-              color: Color(0xFF8E8E93),
+              color: tokens.textMuted,
             ),
           ],
         ),
@@ -437,7 +528,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 '提示：API Key 将保存在本地，仅用于此设备。',
                 style: TextStyle(
                   fontSize: 12,
-                  color: Color(0xFF8E8E93),
+                  color: context.themeTokens.textMuted,
                 ),
               ),
             ],
@@ -498,18 +589,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Widget _buildCacheManagementCard(BuildContext context, ConversationProvider provider) {
+    final colorScheme = context.colors;
+
     return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
+      decoration: _buildSectionDecoration(context),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -534,25 +617,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ),
                 ),
                 const SizedBox(width: 12),
-                const Expanded(
+                Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
                         '缓存管理',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                          color: Color(0xFF1C1C1E),
-                        ),
+                        style: _sectionTitleStyle(context),
                       ),
-                      SizedBox(height: 2),
+                      const SizedBox(height: 2),
                       Text(
                         '自动清理 2 天未访问的缓存',
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: Color(0xFF8E8E93),
-                        ),
+                        style: _sectionSubtitleStyle(context),
                       ),
                     ],
                   ),
@@ -577,13 +653,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
               final stats = snapshot.data!;
               return Column(
                 children: [
-                  _buildStatRow('总缓存大小', stats.totalSizeFormatted, Icons.sd_storage_outlined),
+                  _buildStatRow(context, '总缓存大小', stats.totalSizeFormatted, Icons.sd_storage_outlined),
                   const Divider(height: 1),
-                  _buildStatRow('缓存文件数', '${stats.fileCount} 个', Icons.insert_drive_file_outlined),
+                  _buildStatRow(context, '缓存文件数', '${stats.fileCount} 个', Icons.insert_drive_file_outlined),
                   const Divider(height: 1),
-                  _buildStatRow('图片数量', '${stats.imageCount} 张', Icons.image_outlined),
+                  _buildStatRow(context, '图片数量', '${stats.imageCount} 张', Icons.image_outlined),
                   const Divider(height: 1),
-                  _buildStatRow('视频数量', '${stats.videoCount} 个', Icons.videocam_outlined),
+                  _buildStatRow(context, '视频数量', '${stats.videoCount} 个', Icons.videocam_outlined),
                 ],
               );
             },
@@ -619,7 +695,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     label: const Text('清空所有缓存'),
                     style: OutlinedButton.styleFrom(
                       foregroundColor: const Color(0xFFF87171),
-                      side: const BorderSide(color: Color(0xFFF87171)),
+                      side: BorderSide(color: colorScheme.error),
                       padding: const EdgeInsets.symmetric(vertical: 14),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
@@ -635,27 +711,30 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  Widget _buildStatRow(String label, String value, IconData icon) {
+  Widget _buildStatRow(BuildContext context, String label, String value, IconData icon) {
+    final colorScheme = context.colors;
+    final tokens = context.themeTokens;
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       child: Row(
         children: [
-          Icon(icon, size: 18, color: const Color(0xFF8B5CF6)),
+          Icon(icon, size: 18, color: colorScheme.primary),
           const SizedBox(width: 12),
           Text(
             label,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 14,
-              color: Color(0xFF8E8E93),
+              color: tokens.textMuted,
             ),
           ),
           const Spacer(),
           Text(
             value,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 15,
               fontWeight: FontWeight.w600,
-              color: Color(0xFF1C1C1E),
+              color: colorScheme.onSurface,
             ),
           ),
         ],
@@ -664,18 +743,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Widget _buildVideoMergeCard(BuildContext context, VideoMergeProvider provider) {
+    final colorScheme = context.colors;
+    final tokens = context.themeTokens;
+
     return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
+      decoration: _buildSectionDecoration(context),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -700,25 +772,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ),
                 ),
                 const SizedBox(width: 12),
-                const Expanded(
+                Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
                         '视频合并',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                          color: Color(0xFF1C1C1E),
-                        ),
+                        style: _sectionTitleStyle(context),
                       ),
-                      SizedBox(height: 2),
+                      const SizedBox(height: 2),
                       Text(
                         '将场景视频合并为完整视频',
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: Color(0xFF8E8E93),
-                        ),
+                        style: _sectionSubtitleStyle(context),
                       ),
                     ],
                   ),
@@ -728,9 +793,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
 
           // 统计信息
-          _buildStatRow('已合并视频', '${provider.mergedVideosCount} 个', Icons.video_collection_outlined),
+          _buildStatRow(context, '已合并视频', '${provider.mergedVideosCount} 个', Icons.video_collection_outlined),
           const Divider(height: 1),
-          _buildStatRow('占用空间', provider.mergedVideosSizeFormatted, Icons.sd_storage_outlined),
+          _buildStatRow(context, '占用空间', provider.mergedVideosSizeFormatted, Icons.sd_storage_outlined),
 
           // 测试按钮
           Padding(
@@ -756,18 +821,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
               margin: const EdgeInsets.fromLTRB(16, 16, 16, 8),
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: const Color(0xFFEDE9FE),
+                color: colorScheme.primary.withOpacity(0.14),
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: const Color(0xFFA78BFA)),
+                border: Border.all(color: colorScheme.primary.withOpacity(0.4)),
               ),
-              child: const Row(
+              child: Row(
                 children: [
-                  Icon(Icons.science, color: Color(0xFF7C3AED), size: 20),
-                  SizedBox(width: 8),
+                  Icon(Icons.science, color: colorScheme.primary, size: 20),
+                  const SizedBox(width: 8),
                   Expanded(
                     child: Text(
                       'Mock 模式：模拟合并流程，实际下载第一个视频',
-                      style: TextStyle(color: Color(0xFF7C3AED), fontSize: 13),
+                      style: TextStyle(color: colorScheme.primary, fontSize: 13),
                     ),
                   ),
                 ],
@@ -809,8 +874,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     padding: const EdgeInsets.only(top: 12),
                     child: LinearProgressIndicator(
                       value: provider.progress,
-                      backgroundColor: const Color(0xFFF3F4F6),
-                      valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFFEC4899)),
+                      backgroundColor: tokens.inputSurface,
+                      valueColor: AlwaysStoppedAnimation<Color>(colorScheme.secondary),
                     ),
                   ),
               ],
@@ -823,17 +888,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   Widget _buildDatabaseCard(BuildContext context) {
     return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
+      decoration: _buildSectionDecoration(context),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -858,25 +913,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ),
                 ),
                 const SizedBox(width: 12),
-                const Expanded(
+                Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
                         '数据库查看',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                          color: Color(0xFF1C1C1E),
-                        ),
+                        style: _sectionTitleStyle(context),
                       ),
-                      SizedBox(height: 2),
+                      const SizedBox(height: 2),
                       Text(
                         '查看会话和消息数据',
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: Color(0xFF8E8E93),
-                        ),
+                        style: _sectionSubtitleStyle(context),
                       ),
                     ],
                   ),
@@ -890,12 +938,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
             builder: (context, provider, child) {
               return Column(
                 children: [
-                  _buildStatRow('会话数量', '${provider.conversations.length} 个', Icons.folder_outlined),
+                  _buildStatRow(context, '会话数量', '${provider.conversations.length} 个', Icons.folder_outlined),
                   const Divider(height: 1),
                   if (provider.currentConversation != null)
-                    _buildStatRow('当前会话消息', '${provider.currentMessages.length} 条', Icons.message_outlined),
+                    _buildStatRow(context, '当前会话消息', '${provider.currentMessages.length} 条', Icons.message_outlined),
                   if (provider.currentConversation != null) const Divider(height: 1),
-                  _buildStatRow('数据库路径', 'hive_db/', Icons.folder_open_outlined),
+                  _buildStatRow(context, '数据库路径', 'hive_db/', Icons.folder_open_outlined),
                 ],
               );
             },
@@ -949,17 +997,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   Widget _buildAboutCard(BuildContext context) {
     return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
+      decoration: _buildSectionDecoration(context),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -983,25 +1021,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ),
                 ),
                 const SizedBox(width: 12),
-                const Expanded(
+                Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
                         '关于',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                          color: Color(0xFF1C1C1E),
-                        ),
+                        style: _sectionTitleStyle(context),
                       ),
-                      SizedBox(height: 2),
+                      const SizedBox(height: 2),
                       Text(
                         'AI 漫导 - 将创意转化为动漫视频',
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: Color(0xFF8E8E93),
-                        ),
+                        style: _sectionSubtitleStyle(context),
                       ),
                     ],
                   ),
@@ -1014,11 +1045,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
             padding: const EdgeInsets.all(16),
             child: Column(
               children: [
-                _buildAboutRow('版本', '1.0.0'),
+                _buildAboutRow(context, '版本', '1.0.0'),
                 const SizedBox(height: 12),
-                _buildAboutRow('数据库', 'Hive (轻量级 NoSQL)'),
+                _buildAboutRow(context, '数据库', 'Hive (轻量级 NoSQL)'),
                 const SizedBox(height: 12),
-                _buildAboutRow('缓存策略', '2 天未访问自动清理'),
+                _buildAboutRow(context, '缓存策略', '2 天未访问自动清理'),
               ],
             ),
           ),
@@ -1027,25 +1058,28 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  Widget _buildAboutRow(String label, String value) {
+  Widget _buildAboutRow(BuildContext context, String label, String value) {
+    final colorScheme = context.colors;
+    final tokens = context.themeTokens;
+
     return Row(
       children: [
         SizedBox(
           width: 80,
           child: Text(
             label,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 14,
-              color: Color(0xFF8E8E93),
+              color: tokens.textMuted,
             ),
           ),
         ),
         Expanded(
           child: Text(
             value,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 14,
-              color: Color(0xFF1C1C1E),
+              color: colorScheme.onSurface,
             ),
           ),
         ),

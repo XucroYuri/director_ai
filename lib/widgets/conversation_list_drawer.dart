@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import '../models/conversation.dart';
 import '../providers/conversation_provider.dart';
 import '../screens/settings_screen.dart';
+import '../theme/app_theme.dart';
 
 /// 会话列表 Drawer
 class ConversationListDrawer extends StatelessWidget {
@@ -11,17 +12,12 @@ class ConversationListDrawer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final tokens = context.themeTokens;
+
     return Container(
       width: 320,
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            const Color(0xFF1E1B2E),
-            const Color(0xFF2D2640),
-          ],
-        ),
+        gradient: tokens.drawerBackgroundGradient,
       ),
       child: Consumer<ConversationProvider>(
         builder: (context, provider, child) {
@@ -33,7 +29,7 @@ class ConversationListDrawer extends StatelessWidget {
               // 会话列表
               Expanded(
                 child: provider.isLoading
-                    ? _buildLoadingState()
+                    ? _buildLoadingState(context)
                     : provider.conversations.isEmpty
                         ? _buildEmptyState(context, provider)
                         : _buildConversationList(context, provider),
@@ -49,15 +45,16 @@ class ConversationListDrawer extends StatelessWidget {
   }
 
   Widget _buildHeader(BuildContext context, ConversationProvider provider) {
+    final colorScheme = context.colors;
+    final tokens = context.themeTokens;
+
     return Container(
       padding: const EdgeInsets.fromLTRB(20, 60, 20, 20),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [const Color(0xFF8B5CF6), const Color(0xFFEC4899)],
-        ),
+        gradient: tokens.brandGradient,
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF8B5CF6).withOpacity(0.3),
+            color: colorScheme.primary.withOpacity(0.28),
             blurRadius: 20,
             offset: const Offset(0, 4),
           ),
@@ -121,15 +118,18 @@ class ConversationListDrawer extends StatelessWidget {
     );
   }
 
-  Widget _buildLoadingState() {
-    return const Center(
+  Widget _buildLoadingState(BuildContext context) {
+    return Center(
       child: CircularProgressIndicator(
-        valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF8B5CF6)),
+        valueColor: AlwaysStoppedAnimation<Color>(context.colors.primary),
       ),
     );
   }
 
   Widget _buildEmptyState(BuildContext context, ConversationProvider provider) {
+    final colorScheme = context.colors;
+    final tokens = context.themeTokens;
+
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -137,13 +137,13 @@ class ConversationListDrawer extends StatelessWidget {
           Icon(
             Icons.chat_outlined,
             size: 64,
-            color: Colors.white.withOpacity(0.2),
+            color: colorScheme.onSurface.withOpacity(0.2),
           ),
           const SizedBox(height: 16),
           Text(
             '暂无对话记录',
             style: TextStyle(
-              color: Colors.white.withOpacity(0.6),
+              color: tokens.textMuted,
               fontSize: 16,
             ),
           ),
@@ -153,7 +153,7 @@ class ConversationListDrawer extends StatelessWidget {
             icon: const Icon(Icons.add),
             label: const Text('创建新对话'),
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF8B5CF6),
+              backgroundColor: colorScheme.primary,
               foregroundColor: Colors.white,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(20),
@@ -184,12 +184,15 @@ class ConversationListDrawer extends StatelessWidget {
   }
 
   Widget _buildFooter(BuildContext context) {
+    final colorScheme = context.colors;
+    final tokens = context.themeTokens;
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         border: Border(
           top: BorderSide(
-            color: Colors.white.withOpacity(0.1),
+            color: tokens.borderSubtle,
             width: 1,
           ),
         ),
@@ -200,21 +203,21 @@ class ConversationListDrawer extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.05),
+            color: tokens.surfaceGlass.withOpacity(context.isDarkMode ? 0.4 : 0.7),
             borderRadius: BorderRadius.circular(12),
           ),
           child: Row(
             children: [
               Icon(
                 Icons.settings_outlined,
-                color: Colors.white.withOpacity(0.7),
+                color: colorScheme.onSurface.withOpacity(0.75),
                 size: 20,
               ),
               const SizedBox(width: 12),
               Text(
                 '设置',
                 style: TextStyle(
-                  color: Colors.white.withOpacity(0.9),
+                  color: colorScheme.onSurface,
                   fontSize: 15,
                   fontWeight: FontWeight.w500,
                 ),
@@ -222,7 +225,7 @@ class ConversationListDrawer extends StatelessWidget {
               const Spacer(),
               Icon(
                 Icons.chevron_right,
-                color: Colors.white.withOpacity(0.5),
+                color: tokens.textMuted,
                 size: 18,
               ),
             ],
@@ -243,18 +246,21 @@ class ConversationListDrawer extends StatelessWidget {
   }
 
   void _deleteConversation(BuildContext context, ConversationProvider provider, Conversation conversation) async {
+    final colorScheme = context.colors;
+    final tokens = context.themeTokens;
+
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: const Color(0xFF1E1B2E),
+        backgroundColor: tokens.surfaceElevated,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text(
+        title: Text(
           '删除对话',
-          style: TextStyle(color: Colors.white),
+          style: TextStyle(color: colorScheme.onSurface),
         ),
         content: Text(
           '确定要删除「${conversation.title}」吗？\n\n此操作将删除该对话的所有消息和缓存，无法恢复。',
-          style: TextStyle(color: Colors.white70),
+          style: TextStyle(color: tokens.textMuted),
         ),
         actions: [
           TextButton(
@@ -264,7 +270,7 @@ class ConversationListDrawer extends StatelessWidget {
           FilledButton(
             onPressed: () => Navigator.pop(context, true),
             style: FilledButton.styleFrom(
-              backgroundColor: const Color(0xFFF87171),
+              backgroundColor: colorScheme.error,
             ),
             child: const Text('删除'),
           ),
@@ -305,17 +311,20 @@ class ConversationItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = context.colors;
+    final tokens = context.themeTokens;
+
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
       decoration: BoxDecoration(
         color: isSelected
-            ? const Color(0xFF8B5CF6).withOpacity(0.15)
-            : Colors.white.withOpacity(0.05),
+            ? colorScheme.primary.withOpacity(context.isDarkMode ? 0.2 : 0.12)
+            : tokens.surfaceGlass.withOpacity(context.isDarkMode ? 0.32 : 0.6),
         borderRadius: BorderRadius.circular(14),
         border: Border.all(
           color: isSelected
-              ? const Color(0xFF8B5CF6).withOpacity(0.5)
-              : Colors.transparent,
+              ? colorScheme.primary.withOpacity(0.5)
+              : tokens.borderSubtle.withOpacity(0.45),
           width: isSelected ? 1.5 : 0,
         ),
       ),
@@ -341,7 +350,7 @@ class ConversationItem extends StatelessWidget {
                           child: Text(
                             conversation.title,
                             style: TextStyle(
-                              color: Colors.white.withOpacity(0.95),
+                              color: colorScheme.onSurface.withOpacity(0.95),
                               fontSize: 15,
                               fontWeight: FontWeight.w600,
                             ),
@@ -354,12 +363,12 @@ class ConversationItem extends StatelessWidget {
                             margin: const EdgeInsets.only(left: 8),
                             padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                             decoration: BoxDecoration(
-                              color: const Color(0xFF8B5CF6).withOpacity(0.2),
+                              color: colorScheme.primary.withOpacity(0.2),
                               borderRadius: BorderRadius.circular(4),
                             ),
-                            child: const Icon(
+                            child: Icon(
                               Icons.push_pin,
-                              color: Color(0xFF8B5CF6),
+                              color: colorScheme.primary,
                               size: 10,
                             ),
                           ),
@@ -371,7 +380,7 @@ class ConversationItem extends StatelessWidget {
                       Text(
                         conversation.previewText!,
                         style: TextStyle(
-                          color: Colors.white.withOpacity(0.5),
+                          color: tokens.textMuted,
                           fontSize: 13,
                         ),
                         maxLines: 1,
@@ -384,7 +393,7 @@ class ConversationItem extends StatelessWidget {
                         Text(
                           _formatDate(conversation.updatedAt),
                           style: TextStyle(
-                            color: Colors.white.withOpacity(0.4),
+                            color: tokens.textMuted.withOpacity(0.9),
                             fontSize: 12,
                           ),
                         ),
@@ -392,7 +401,7 @@ class ConversationItem extends StatelessWidget {
                         Text(
                           '${conversation.messageCount} 条消息',
                           style: TextStyle(
-                            color: Colors.white.withOpacity(0.4),
+                            color: tokens.textMuted.withOpacity(0.9),
                             fontSize: 12,
                           ),
                         ),
@@ -427,13 +436,15 @@ class ConversationItem extends StatelessWidget {
   }
 
   Widget _buildDefaultCover() {
+    final gradient = const LinearGradient(
+      colors: [Color(0xFF1A73E8), Color(0xFF33B4FF)],
+    );
+
     return Container(
       width: 50,
       height: 50,
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Color(0xFF8B5CF6), Color(0xFFEC4899)],
-        ),
+        gradient: gradient,
         borderRadius: BorderRadius.circular(10),
       ),
       child: const Icon(
@@ -445,13 +456,16 @@ class ConversationItem extends StatelessWidget {
   }
 
   Widget _buildActions(BuildContext context) {
+    final colorScheme = context.colors;
+    final tokens = context.themeTokens;
+
     return PopupMenuButton<String>(
       icon: Icon(
         Icons.more_vert,
-        color: Colors.white.withOpacity(0.5),
+        color: tokens.textMuted,
         size: 18,
       ),
-      color: const Color(0xFF1E1B2E),
+      color: tokens.surfaceElevated,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
       ),
@@ -473,12 +487,12 @@ class ConversationItem extends StatelessWidget {
               Icon(
                 conversation.isPinned ? Icons.push_pin : Icons.push_pin_outlined,
                 size: 18,
-                color: conversation.isPinned ? const Color(0xFF8B5CF6) : Colors.white70,
+                color: conversation.isPinned ? colorScheme.primary : colorScheme.onSurface.withOpacity(0.8),
               ),
               const SizedBox(width: 12),
               Text(
                 conversation.isPinned ? '取消置顶' : '置顶',
-                style: const TextStyle(color: Colors.white70),
+                style: TextStyle(color: colorScheme.onSurface.withOpacity(0.8)),
               ),
             ],
           ),

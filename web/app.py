@@ -17,6 +17,43 @@ import json
 import shutil
 import time
 import gradio as gr
+
+def _ensure_no_proxy_for_localhost() -> None:
+    existing = os.environ.get("NO_PROXY") or os.environ.get("no_proxy") or ""
+    required = ["localhost", "127.0.0.1"]
+    items = [x.strip() for x in existing.split(",") if x.strip()]
+    for r in required:
+        if r not in items:
+            items.append(r)
+    if items:
+        value = ",".join(items)
+        os.environ["NO_PROXY"] = value
+        os.environ["no_proxy"] = value
+
+
+_ensure_no_proxy_for_localhost()
+
+
+try:
+    import gradio.blocks
+
+    def _patched_get_api_info(self, all_endpoints: bool = False):
+        api_info = {"named_endpoints": {}, "unnamed_endpoints": {}}
+        for fn in self.fns.values():
+            if not fn.fn or fn.api_name is False:
+                continue
+            if not all_endpoints and not fn.show_api:
+                continue
+            api_info["named_endpoints"][fn.api_name or str(id(fn))] = {
+                "parameters": [],
+                "returns": [],
+                "show_api": fn.show_api,
+            }
+        return api_info
+
+    gradio.blocks.Blocks.get_api_info = _patched_get_api_info  # type: ignore[attr-defined]
+except Exception:
+    pass
 from pathlib import Path
 from typing import List, Optional, Tuple, Dict, Any
 from datetime import datetime
@@ -4345,7 +4382,9 @@ def create_ui():
 
     with gr.Blocks(
         title="AI 分镜 Pro",
-        theme=dark_theme
+        theme=dark_theme,
+        css=CUSTOM_CSS,
+        analytics_enabled=False,
     ) as demo:
 
         # ===== 全局样式 =====
@@ -6955,7 +6994,7 @@ def create_ui():
         create_btn.click(
             create_project,
             inputs=[project_name, aspect_ratio],
-            outputs=[create_status, gr.State()]
+            outputs=[create_status]
         ).then(
             lambda: get_project_summary(),
             outputs=[project_summary]
@@ -7608,10 +7647,10 @@ if __name__ == "__main__":
     ]
 
     demo.launch(
-        server_name=settings.gradio_host,
+        server_name="127.0.0.1",
         server_port=settings.gradio_port,
         share=False,
-        inbrowser=True,
-        css=CUSTOM_CSS,
+        inbrowser=False,
+        show_api=False,
         allowed_paths=allowed_paths
     )

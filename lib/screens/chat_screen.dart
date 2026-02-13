@@ -23,6 +23,7 @@ import '../services/video_merger_service.dart';
 import '../services/gallery_service.dart';
 import '../widgets/screenplay_card.dart';
 import '../widgets/conversation_list_drawer.dart';
+import '../theme/app_theme.dart';
 
 /// 视频播放器单例管理器 - 确保同时只有一个视频在初始化/播放
 class VideoPlayerManager {
@@ -251,17 +252,14 @@ class _ChatScreenState extends State<ChatScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = context.colors;
+    final tokens = context.themeTokens;
+
     return Scaffold(
-      backgroundColor: const Color(0xFFFAF9FC),
+      backgroundColor: colorScheme.surface,
       drawer: const ConversationListDrawer(),
       body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [Color(0xFFFAF9FC), Color(0xFFF5F4F8)],
-          ),
-        ),
+        decoration: BoxDecoration(gradient: tokens.appBackgroundGradient),
         child: Column(
             children: [
               // AppBar
@@ -272,15 +270,24 @@ class _ChatScreenState extends State<ChatScreen> {
                 builder: (context, provider, child) {
                   if (provider.errorMessage != null) {
                     final isApiKeyError = provider.errorMessage!.contains('API Key');
+                    final bannerColor = isApiKeyError
+                        ? tokens.warning.withOpacity(context.isDarkMode ? 0.2 : 0.12)
+                        : colorScheme.error.withOpacity(context.isDarkMode ? 0.2 : 0.12);
+                    final borderColor = isApiKeyError
+                        ? tokens.warning.withOpacity(context.isDarkMode ? 0.45 : 0.35)
+                        : colorScheme.error.withOpacity(context.isDarkMode ? 0.5 : 0.3);
+                    final iconBg = isApiKeyError ? tokens.warning : colorScheme.error;
+                    final textColor = isApiKeyError ? colorScheme.onSurface : colorScheme.error;
+
                     return Container(
                       width: double.infinity,
                       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                       margin: const EdgeInsets.fromLTRB(12, 8, 12, 8),
                       decoration: BoxDecoration(
-                        color: isApiKeyError ? const Color(0xFFFFF7ED) : const Color(0xFFFEE2E2),
+                        color: bannerColor,
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
-                          color: isApiKeyError ? const Color(0xFFFED7AA) : const Color(0xFFFECACA),
+                          color: borderColor,
                           width: 1,
                         ),
                       ),
@@ -289,7 +296,7 @@ class _ChatScreenState extends State<ChatScreen> {
                           Container(
                             padding: const EdgeInsets.all(6),
                             decoration: BoxDecoration(
-                              color: isApiKeyError ? const Color(0xFFF59E0B) : const Color(0xFFEF4444),
+                              color: iconBg,
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: Icon(
@@ -305,8 +312,8 @@ class _ChatScreenState extends State<ChatScreen> {
                               children: [
                                 Text(
                                   isApiKeyError ? '需要配置 API Key' : '出错了',
-                                  style: const TextStyle(
-                                    color: Color(0xFF991B1B),
+                                  style: TextStyle(
+                                    color: textColor,
                                     fontSize: 13,
                                     fontWeight: FontWeight.w600,
                                   ),
@@ -314,8 +321,8 @@ class _ChatScreenState extends State<ChatScreen> {
                                 const SizedBox(height: 2),
                                 Text(
                                   provider.errorMessage!,
-                                  style: const TextStyle(
-                                    color: Color(0xFF991B1B),
+                                  style: TextStyle(
+                                    color: textColor,
                                     fontSize: 12,
                                   ),
                                 ),
@@ -329,7 +336,7 @@ class _ChatScreenState extends State<ChatScreen> {
                                 Navigator.pushNamed(context, '/settings');
                               },
                               style: TextButton.styleFrom(
-                                foregroundColor: const Color(0xFF92400E),
+                                foregroundColor: colorScheme.primary,
                                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                                 tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                               ),
@@ -339,7 +346,7 @@ class _ChatScreenState extends State<ChatScreen> {
                             IconButton(
                               icon: const Icon(Icons.close, size: 20),
                               onPressed: () => provider.clearError(),
-                              color: const Color(0xFF991B1B),
+                              color: textColor,
                               constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
                             ),
                         ],
@@ -395,20 +402,23 @@ class _ChatScreenState extends State<ChatScreen> {
 
   /// 现代风格 AppBar
   Widget _buildModernAppBar(BuildContext context) {
+    final colorScheme = context.colors;
+    final tokens = context.themeTokens;
+
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: tokens.surfaceElevated,
         border: Border(
           bottom: BorderSide(
-            color: const Color(0xFFE5E7EB),
-            width: 0.5,
+            color: tokens.borderSubtle,
+            width: 1,
           ),
         ),
       ),
       child: AppBar(
         leading: Builder(
           builder: (context) => IconButton(
-            icon: const Icon(Icons.menu, color: Color(0xFF1C1C1E)),
+            icon: Icon(Icons.menu, color: colorScheme.onSurface),
             onPressed: () => Scaffold.of(context).openDrawer(),
           ),
         ),
@@ -417,10 +427,10 @@ class _ChatScreenState extends State<ChatScreen> {
             final title = provider.currentConversation?.title ?? 'AI漫导';
             return Text(
               title,
-              style: const TextStyle(
-                color: Color(0xFF1C1C1E),
+              style: TextStyle(
+                color: colorScheme.onSurface,
                 fontSize: 19,
-                fontWeight: FontWeight.w600,
+                fontWeight: FontWeight.w700,
                 letterSpacing: -0.5,
               ),
             );
@@ -431,42 +441,44 @@ class _ChatScreenState extends State<ChatScreen> {
         scrolledUnderElevation: 0,
         shadowColor: Colors.transparent,
         surfaceTintColor: Colors.transparent,
-      actions: [
-        IconButton(
-          icon: const Icon(Icons.settings_outlined, size: 22),
-          onPressed: () => _showSettingsDialog(context),
-          color: const Color(0xFF8B5CF6),
-        ),
-        IconButton(
-          icon: const Icon(Icons.bug_report_outlined, size: 22),
-          onPressed: () => Navigator.pushNamed(context, '/logs'),
-          color: const Color(0xFF8B5CF6),
-        ),
-        IconButton(
-          icon: const Icon(Icons.delete_outline, size: 22),
-          onPressed: () => _showClearDialog(context),
-          color: const Color(0xFF8B5CF6),
-        ),
-      ],
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.settings_outlined, size: 22),
+            onPressed: () => _showSettingsDialog(context),
+            color: colorScheme.primary,
+          ),
+          IconButton(
+            icon: const Icon(Icons.bug_report_outlined, size: 22),
+            onPressed: () => Navigator.pushNamed(context, '/logs'),
+            color: colorScheme.primary,
+          ),
+          IconButton(
+            icon: const Icon(Icons.delete_outline, size: 22),
+            onPressed: () => _showClearDialog(context),
+            color: colorScheme.primary,
+          ),
+        ],
       ),
     );
   }
 
-
   Widget _buildInputArea(BuildContext context) {
+    final colorScheme = context.colors;
+    final tokens = context.themeTokens;
+
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: tokens.surfaceElevated.withOpacity(context.isDarkMode ? 0.95 : 0.98),
         border: Border(
           top: BorderSide(
-            color: const Color(0xFFE5E7EB),
-            width: 0.5,
+            color: tokens.borderSubtle,
+            width: 1,
           ),
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.03),
+            color: Colors.black.withOpacity(context.isDarkMode ? 0.28 : 0.05),
             offset: const Offset(0, -2),
             blurRadius: 12,
           ),
@@ -511,8 +523,8 @@ class _ChatScreenState extends State<ChatScreen> {
                                   return Container(
                                     width: 64,
                                     height: 64,
-                                    color: const Color(0xFFF3F4F6),
-                                    child: const Icon(Icons.broken_image, size: 24, color: Color(0xFF8E8E93)),
+                                    color: tokens.inputSurface,
+                                    child: Icon(Icons.broken_image, size: 24, color: tokens.textMuted),
                                   );
                                 },
                               ),
@@ -526,8 +538,8 @@ class _ChatScreenState extends State<ChatScreen> {
                                 child: Container(
                                   width: 20,
                                   height: 20,
-                                  decoration: const BoxDecoration(
-                                    color: Color(0xFF1C1C1E),
+                                  decoration: BoxDecoration(
+                                    color: colorScheme.onSurface,
                                     shape: BoxShape.circle,
                                   ),
                                   child: const Icon(
@@ -555,7 +567,7 @@ class _ChatScreenState extends State<ChatScreen> {
                     if (!provider.isProcessing)
                       Container(
                         decoration: BoxDecoration(
-                          color: const Color(0xFFF3F4F6),
+                          color: tokens.inputSurface,
                           borderRadius: BorderRadius.circular(16),
                         ),
                         child: Row(
@@ -568,14 +580,14 @@ class _ChatScreenState extends State<ChatScreen> {
                                 tooltip: '从相册选择',
                                 padding: EdgeInsets.zero,
                                 constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
-                                color: const Color(0xFF6B7280),
+                                color: tokens.textMuted,
                               ),
                             // 分隔线
                             if (provider.userImages.isEmpty && provider.canAddMoreImages)
                               Container(
                                 width: 0.5,
                                 height: 20,
-                                color: const Color(0xFFE5E7EB),
+                                color: tokens.borderSubtle,
                               ),
                             // 拍照按钮
                             if (provider.userImages.isEmpty)
@@ -585,7 +597,7 @@ class _ChatScreenState extends State<ChatScreen> {
                                 tooltip: '拍照',
                                 padding: EdgeInsets.zero,
                                 constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
-                                color: const Color(0xFF6B7280),
+                                color: tokens.textMuted,
                               ),
                             // 添加更多图片按钮
                             if (provider.userImages.isNotEmpty && provider.canAddMoreImages)
@@ -596,7 +608,7 @@ class _ChatScreenState extends State<ChatScreen> {
                     Expanded(
                       child: Container(
                         decoration: BoxDecoration(
-                          color: const Color(0xFFF3F4F6),
+                          color: tokens.inputSurface,
                           borderRadius: BorderRadius.circular(16),
                         ),
                         child: TextField(
@@ -613,8 +625,8 @@ class _ChatScreenState extends State<ChatScreen> {
                               horizontal: 14,
                               vertical: 8,
                             ),
-                            hintStyle: const TextStyle(
-                              color: Color(0xFF9CA3AF),
+                            hintStyle: TextStyle(
+                              color: tokens.textMuted,
                               fontSize: 15,
                             ),
                           ),
@@ -637,6 +649,8 @@ class _ChatScreenState extends State<ChatScreen> {
 
   /// 发送/取消按钮 - 现代风格
   Widget _buildSendButton(BuildContext context, ChatProvider provider) {
+    final colorScheme = context.colors;
+    final tokens = context.themeTokens;
     final isProcessing = provider.isProcessing;
     final isCancelling = provider.isCancelling;
 
@@ -646,11 +660,11 @@ class _ChatScreenState extends State<ChatScreen> {
         width: 50,
         height: 50,
         decoration: BoxDecoration(
-          color: isProcessing && !isCancelling ? const Color(0xFF9CA3AF) : const Color(0xFF8B5CF6),
+          color: isProcessing && !isCancelling ? tokens.textMuted : colorScheme.primary,
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: const Color(0xFF8B5CF6).withOpacity(0.25),
+              color: colorScheme.primary.withOpacity(0.25),
               offset: const Offset(0, 2),
               blurRadius: 8,
             ),
@@ -676,6 +690,9 @@ class _ChatScreenState extends State<ChatScreen> {
 
   /// 进度追踪器 - 现代风格
   Widget _buildProgressTracker(BuildContext context) {
+    final colorScheme = context.colors;
+    final tokens = context.themeTokens;
+
     return Consumer<ChatProvider>(
       builder: (context, provider, child) {
         // 只在有进度状态(视频生成中)或有失败场景时显示
@@ -693,12 +710,19 @@ class _ChatScreenState extends State<ChatScreen> {
           margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           decoration: BoxDecoration(
-            color: hasFailed ? const Color(0xFFFEE2E2) : Colors.white,
+            color: hasFailed
+                ? colorScheme.error.withOpacity(context.isDarkMode ? 0.2 : 0.12)
+                : tokens.surfaceElevated,
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: hasFailed ? const Color(0xFFFECACA) : const Color(0xFFE5E7EB), width: 1),
+            border: Border.all(
+              color: hasFailed
+                  ? colorScheme.error.withOpacity(context.isDarkMode ? 0.45 : 0.28)
+                  : tokens.borderSubtle,
+              width: 1,
+            ),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.04),
+                color: Colors.black.withOpacity(context.isDarkMode ? 0.24 : 0.04),
                 offset: const Offset(0, 2),
                 blurRadius: 8,
               ),
@@ -715,9 +739,7 @@ class _ChatScreenState extends State<ChatScreen> {
                     height: 20,
                     child: CircularProgressIndicator(
                       strokeWidth: 2,
-                      valueColor: const AlwaysStoppedAnimation<Color>(
-                        Color(0xFF8B5CF6),
-                      ),
+                      valueColor: AlwaysStoppedAnimation<Color>(colorScheme.primary),
                     ),
                   ),
                 )
@@ -725,7 +747,7 @@ class _ChatScreenState extends State<ChatScreen> {
                 Container(
                   padding: const EdgeInsets.all(6),
                   decoration: BoxDecoration(
-                    color: hasFailed ? const Color(0xFFEF4444) : const Color(0xFF8B5CF6),
+                    color: hasFailed ? colorScheme.error : colorScheme.primary,
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: Icon(
@@ -743,10 +765,10 @@ class _ChatScreenState extends State<ChatScreen> {
                   children: [
                     Text(
                       hasFailed ? '部分场景失败，可点击重试' : status,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
-                        color: Color(0xFF1C1C1E),
+                        color: colorScheme.onSurface,
                       ),
                     ),
                     const SizedBox(height: 10),
@@ -754,7 +776,7 @@ class _ChatScreenState extends State<ChatScreen> {
                     Container(
                       height: 6,
                       decoration: BoxDecoration(
-                        color: const Color(0xFFF3F4F6),
+                        color: tokens.inputSurface,
                         borderRadius: BorderRadius.circular(3),
                       ),
                       child: ClipRRect(
@@ -762,9 +784,7 @@ class _ChatScreenState extends State<ChatScreen> {
                         child: LinearProgressIndicator(
                           value: progress.clamp(0.0, 1.0),
                           backgroundColor: Colors.transparent,
-                          valueColor: const AlwaysStoppedAnimation<Color>(
-                            Color(0xFF8B5CF6),
-                          ),
+                          valueColor: AlwaysStoppedAnimation<Color>(colorScheme.primary),
                           minHeight: 6,
                         ),
                       ),
@@ -777,7 +797,7 @@ class _ChatScreenState extends State<ChatScreen> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF8B5CF6),
+                  color: colorScheme.primary,
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
@@ -800,6 +820,8 @@ class _ChatScreenState extends State<ChatScreen> {
     final tokenController = TextEditingController();
     tokenController.text = 'YOUR_TOKEN_PLACEHOLDER';
     bool obscureText = true;
+    final colorScheme = context.colors;
+    final tokens = context.themeTokens;
 
     showDialog(
       context: context,
@@ -808,10 +830,10 @@ class _ChatScreenState extends State<ChatScreen> {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20),
           ),
-          title: const Text(
+          title: Text(
             '设置',
             style: TextStyle(
-              color: Color(0xFFFFB8D1),
+              color: colorScheme.primary,
               fontWeight: FontWeight.w600,
             ),
           ),
@@ -826,19 +848,19 @@ class _ChatScreenState extends State<ChatScreen> {
                 decoration: InputDecoration(
                   hintText: '输入你的 API 令牌',
                   filled: true,
-                  fillColor: const Color(0xFFFFEFF4),
+                  fillColor: tokens.inputSurface,
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(14),
                     borderSide: BorderSide.none,
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(14),
-                    borderSide: const BorderSide(color: Color(0xFFFFB8D1), width: 2),
+                    borderSide: BorderSide(color: colorScheme.primary, width: 2),
                   ),
                   suffixIcon: IconButton(
                     icon: Icon(
                       obscureText ? Icons.visibility_off : Icons.visibility,
-                      color: const Color(0xFFFFB8D1),
+                      color: colorScheme.primary,
                     ),
                     onPressed: () {
                       setState(() {
@@ -850,9 +872,9 @@ class _ChatScreenState extends State<ChatScreen> {
                 obscureText: obscureText,
               ),
               const SizedBox(height: 16),
-              const Text(
+              Text(
                 '输入你的 API Bearer 令牌。',
-                style: TextStyle(fontSize: 12, color: Colors.grey),
+                style: TextStyle(fontSize: 12, color: tokens.textMuted),
               ),
             ],
           ),
@@ -869,7 +891,7 @@ class _ChatScreenState extends State<ChatScreen> {
                 );
               },
               style: FilledButton.styleFrom(
-                backgroundColor: const Color(0xFFFFB8D1),
+                backgroundColor: colorScheme.primary,
               ),
               child: const Text('确定'),
             ),
@@ -880,16 +902,18 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   void _showClearDialog(BuildContext context) {
+    final colorScheme = context.colors;
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(20),
         ),
-        title: const Text(
+        title: Text(
           '清除对话',
           style: TextStyle(
-            color: Color(0xFFFFB8D1),
+            color: colorScheme.primary,
             fontWeight: FontWeight.w600,
           ),
         ),
@@ -905,7 +929,7 @@ class _ChatScreenState extends State<ChatScreen> {
               Navigator.pop(context);
             },
             style: FilledButton.styleFrom(
-              backgroundColor: const Color(0xFFFFB8D1),
+              backgroundColor: colorScheme.primary,
             ),
             child: const Text('清除'),
           ),
@@ -918,6 +942,8 @@ class _ChatScreenState extends State<ChatScreen> {
   void _showMergeDialog(BuildContext context, Screenplay screenplay) {
     // 检查是否有足够的场景视频
     final scenesWithVideo = screenplay.scenes.where((s) => s.videoUrl != null).length;
+    final colorScheme = context.colors;
+    final tokens = context.themeTokens;
 
     showDialog(
       context: context,
@@ -929,9 +955,7 @@ class _ChatScreenState extends State<ChatScreen> {
               width: 36,
               height: 36,
               decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [Color(0xFFEC4899), Color(0xFF8B5CF6)],
-                ),
+                gradient: tokens.highlightGradient,
                 borderRadius: BorderRadius.circular(10),
               ),
               child: const Icon(
@@ -954,9 +978,9 @@ class _ChatScreenState extends State<ChatScreen> {
             const SizedBox(height: 4),
             Text('已生成视频: $scenesWithVideo 个'),
             const SizedBox(height: 16),
-            const Text(
+            Text(
               '是否将这些场景视频合并为完整视频？',
-              style: TextStyle(fontSize: 13, color: Color(0xFF8E8E93)),
+              style: TextStyle(fontSize: 13, color: tokens.textMuted),
             ),
           ],
         ),
@@ -978,7 +1002,7 @@ class _ChatScreenState extends State<ChatScreen> {
               context.read<VideoMergeProvider>().mergeVideos(screenplay);
             },
             style: FilledButton.styleFrom(
-              backgroundColor: const Color(0xFFEC4899),
+              backgroundColor: colorScheme.primary,
             ),
             child: const Text('开始合并'),
           ),
@@ -989,12 +1013,14 @@ class _ChatScreenState extends State<ChatScreen> {
 
   /// 添加图片按钮（用于预览区域）
   Widget _buildAddImageButton(BuildContext context) {
+    final tokens = context.themeTokens;
+
     return Container(
       width: 80,
       height: 80,
       margin: const EdgeInsets.only(right: 8),
       child: Material(
-        color: Colors.grey.shade200,
+        color: tokens.inputSurface,
         borderRadius: BorderRadius.circular(8),
         child: InkWell(
           onTap: () => _showImageSourceDialog(context),
@@ -1002,11 +1028,11 @@ class _ChatScreenState extends State<ChatScreen> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.add, color: Colors.grey.shade600, size: 28),
+              Icon(Icons.add, color: tokens.textMuted, size: 28),
               const SizedBox(height: 4),
               Text(
                 '添加',
-                style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
+                style: TextStyle(color: tokens.textMuted, fontSize: 12),
               ),
             ],
           ),
@@ -1017,8 +1043,10 @@ class _ChatScreenState extends State<ChatScreen> {
 
   /// 小型添加图片按钮（用于输入框旁）
   Widget _buildAddImageButtonSmall(BuildContext context, ChatProvider provider) {
+    final colorScheme = context.colors;
+
     return PopupMenuButton<String>(
-      icon: const Icon(Icons.add_photo_alternate, color: Color(0xFF6B4CE6)),
+      icon: Icon(Icons.add_photo_alternate, color: colorScheme.primary),
       tooltip: '添加图片',
       onSelected: (choice) {
         if (choice == 'gallery') {
@@ -1097,6 +1125,8 @@ class _MessageBubble extends StatelessWidget {
   Widget build(BuildContext context) {
     final isUser = message.role == MessageRole.user;
     final theme = Theme.of(context);
+    final colorScheme = context.colors;
+    final tokens = context.themeTokens;
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
@@ -1108,7 +1138,7 @@ class _MessageBubble extends StatelessWidget {
           Text(
             message.getDisplayName(),
             style: theme.textTheme.labelSmall?.copyWith(
-              color: isUser ? Colors.blue : Colors.green,
+              color: isUser ? colorScheme.primary : colorScheme.secondary,
               fontWeight: FontWeight.bold,
             ),
           ),
@@ -1125,15 +1155,11 @@ class _MessageBubble extends StatelessWidget {
                   width: 36,
                   height: 36,
                   decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [Color(0xFF8B5CF6), Color(0xFFA78BFA)],
-                    ),
+                    gradient: tokens.brandGradient,
                     borderRadius: BorderRadius.circular(10),
                     boxShadow: [
                       BoxShadow(
-                        color: const Color(0xFF8B5CF6).withOpacity(0.2),
+                        color: colorScheme.primary.withOpacity(0.2),
                         offset: const Offset(0, 2),
                         blurRadius: 8,
                       ),
@@ -1159,11 +1185,11 @@ class _MessageBubble extends StatelessWidget {
                   width: 36,
                   height: 36,
                   decoration: BoxDecoration(
-                    color: const Color(0xFF8B5CF6),
+                    color: colorScheme.primary,
                     borderRadius: BorderRadius.circular(10),
                     boxShadow: [
                       BoxShadow(
-                        color: const Color(0xFF8B5CF6).withOpacity(0.25),
+                        color: colorScheme.primary.withOpacity(0.25),
                         offset: const Offset(0, 2),
                         blurRadius: 6,
                       ),
@@ -1185,7 +1211,7 @@ class _MessageBubble extends StatelessWidget {
             child: Text(
               _formatTime(message.timestamp),
               style: theme.textTheme.labelSmall?.copyWith(
-                color: Colors.grey,
+                color: tokens.textMuted,
               ),
             ),
           ),
@@ -1196,6 +1222,8 @@ class _MessageBubble extends StatelessWidget {
 
   /// 现代消息气泡 - AI消息带渐变边框，用户消息带渐变背景
   Widget _buildMessageBubble(BuildContext context, bool isUser, ChatMessage message) {
+    final colorScheme = context.colors;
+    final tokens = context.themeTokens;
     Color textColor;
     BorderRadiusGeometry borderRadius = BorderRadius.circular(20);
 
@@ -1204,10 +1232,10 @@ class _MessageBubble extends StatelessWidget {
       return Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         decoration: BoxDecoration(
-          color: const Color(0xFFF8F7FC),
+          color: tokens.inputSurface,
           borderRadius: borderRadius,
           border: Border.all(
-            color: const Color(0xFFE5E1F5),
+            color: tokens.borderSubtle,
             width: 1,
           ),
         ),
@@ -1220,15 +1248,15 @@ class _MessageBubble extends StatelessWidget {
               child: CircularProgressIndicator(
                 strokeWidth: 2,
                 valueColor: AlwaysStoppedAnimation<Color>(
-                  const Color(0xFF8B5CF6).withOpacity(0.6),
+                  colorScheme.primary.withOpacity(0.6),
                 ),
               ),
             ),
             const SizedBox(width: 10),
             Text(
               message.content,
-              style: const TextStyle(
-                color: Color(0xFF6B7280),
+              style: TextStyle(
+                color: tokens.textMuted,
                 fontSize: 14,
                 fontStyle: FontStyle.italic,
               ),
@@ -1237,15 +1265,18 @@ class _MessageBubble extends StatelessWidget {
         ),
       );
     } else if (message.type == MessageType.error) {
-      textColor = const Color(0xFF991B1B);
+      textColor = colorScheme.error;
       return Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         decoration: BoxDecoration(
-          gradient: const LinearGradient(
-            colors: [Color(0xFFFEE2E2), Color(0xFFFECACA)],
+          gradient: LinearGradient(
+            colors: [
+              colorScheme.error.withOpacity(context.isDarkMode ? 0.26 : 0.12),
+              colorScheme.error.withOpacity(context.isDarkMode ? 0.18 : 0.2),
+            ],
           ),
           borderRadius: borderRadius,
-          border: Border.all(color: const Color(0xFFFCA5A5), width: 1),
+          border: Border.all(color: colorScheme.error.withOpacity(0.35), width: 1),
         ),
         child: _buildMessageContent(context, message, isUser, textColor),
       );
@@ -1261,15 +1292,15 @@ class _MessageBubble extends StatelessWidget {
       return Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         decoration: BoxDecoration(
-          gradient: const LinearGradient(
+          gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [Color(0xFF8B5CF6), Color(0xFF7C3AED)],
+            colors: [colorScheme.primary, colorScheme.tertiary],
           ),
           borderRadius: borderRadius,
           boxShadow: [
             BoxShadow(
-              color: const Color(0xFF8B5CF6).withOpacity(0.3),
+              color: colorScheme.primary.withOpacity(0.3),
               offset: const Offset(0, 4),
               blurRadius: 12,
             ),
@@ -1279,7 +1310,7 @@ class _MessageBubble extends StatelessWidget {
       );
     } else {
       // AI消息 - 玻璃态 + 渐变边框
-      textColor = const Color(0xFF1C1C1E);
+      textColor = colorScheme.onSurface;
       borderRadius = const BorderRadius.only(
         topLeft: Radius.circular(20),
         topRight: Radius.circular(20),
@@ -1290,14 +1321,10 @@ class _MessageBubble extends StatelessWidget {
       return Container(
         decoration: BoxDecoration(
           borderRadius: borderRadius,
-          gradient: const LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [Color(0xFF8B5CF6), Color(0xFFEC4899), Color(0xFF8B5CF6)],
-          ),
+          gradient: tokens.highlightGradient,
           boxShadow: [
             BoxShadow(
-              color: const Color(0xFF8B5CF6).withOpacity(0.15),
+              color: colorScheme.primary.withOpacity(0.2),
               offset: const Offset(0, 4),
               blurRadius: 16,
             ),
@@ -1307,7 +1334,7 @@ class _MessageBubble extends StatelessWidget {
           margin: const EdgeInsets.all(1.5), // 边框宽度
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: tokens.surfaceElevated,
             borderRadius: borderRadius,
           ),
           child: _buildMessageContent(context, message, isUser, textColor),
@@ -1317,6 +1344,9 @@ class _MessageBubble extends StatelessWidget {
   }
 
   Widget _buildMessageContent(BuildContext context, ChatMessage message, bool isUser, Color textColor) {
+    final colorScheme = context.colors;
+    final tokens = context.themeTokens;
+
     switch (message.type) {
       case MessageType.text:
       case MessageType.thinking:
@@ -1369,7 +1399,7 @@ class _MessageBubble extends StatelessWidget {
                       return Container(
                         height: 200,
                         width: double.infinity,
-                        color: Colors.grey.shade200,
+                        color: tokens.inputSurface,
                         child: Center(
                           child: CircularProgressIndicator(
                             value: progress.progress,
@@ -1381,14 +1411,17 @@ class _MessageBubble extends StatelessWidget {
                       return Container(
                         height: 200,
                         width: double.infinity,
-                        color: Colors.red.shade100,
-                        child: const Center(
+                        color: colorScheme.error.withOpacity(context.isDarkMode ? 0.2 : 0.1),
+                        child: Center(
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Icon(Icons.error, color: Colors.red),
-                              SizedBox(height: 8),
-                              Text('图片加载失败'),
+                              Icon(Icons.error, color: colorScheme.error),
+                              const SizedBox(height: 8),
+                              Text(
+                                '图片加载失败',
+                                style: TextStyle(color: colorScheme.onSurface),
+                              ),
                             ],
                           ),
                         ),

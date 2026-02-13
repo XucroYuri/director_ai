@@ -1,0 +1,41 @@
+# macOS / Windows
+.DS_Store
+Thumbs.db
+
+# Editors / IDE
+.idea/
+.vscode/
+*.iml
+
+# Dart / Flutter
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.flutter-versions
+.packages
+.pub/
+build/
+ios/.symlinks/
+ios/Pods/
+android/.gradle/
+android/local.properties
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.venv/
+venv/
+
+# Local env files
+.env
+.env.local
+
+# Web runtime data and local env
+web/.env
+web/.venv/
+web/projects/
+web/outputs/
+web/exports/
+web/uploads/

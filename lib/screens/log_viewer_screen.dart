@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../utils/app_logger.dart';
+import '../theme/app_theme.dart';
 
 /// 日志查看页面
 class LogViewerScreen extends StatefulWidget {
@@ -42,6 +43,8 @@ class _LogViewerScreenState extends State<LogViewerScreen> {
   }
 
   Future<void> _deleteLog(File file) async {
+    final colorScheme = context.colors;
+
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -54,7 +57,7 @@ class _LogViewerScreenState extends State<LogViewerScreen> {
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            style: TextButton.styleFrom(foregroundColor: colorScheme.error),
             child: const Text('删除'),
           ),
         ],
@@ -73,6 +76,8 @@ class _LogViewerScreenState extends State<LogViewerScreen> {
   }
 
   Future<void> _clearAllLogs() async {
+    final colorScheme = context.colors;
+
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -85,7 +90,7 @@ class _LogViewerScreenState extends State<LogViewerScreen> {
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            style: TextButton.styleFrom(foregroundColor: colorScheme.error),
             child: const Text('清空'),
           ),
         ],
@@ -108,15 +113,22 @@ class _LogViewerScreenState extends State<LogViewerScreen> {
 
     await Clipboard.setData(ClipboardData(text: _selectedContent!));
     if (mounted) {
+      final tokens = context.themeTokens;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('日志已复制到剪贴板')),
+        SnackBar(
+          content: const Text('日志已复制到剪贴板'),
+          backgroundColor: tokens.success,
+        ),
       );
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final tokens = context.themeTokens;
+
     return Scaffold(
+      backgroundColor: context.colors.surface,
       appBar: AppBar(
         title: const Text('日志查看'),
         actions: [
@@ -147,7 +159,7 @@ class _LogViewerScreenState extends State<LogViewerScreen> {
                   children: [
                     // 文件选择器
                     _buildFileSelector(),
-                    const Divider(height: 1),
+                    Divider(height: 1, color: tokens.borderSubtle),
                     // 日志内容
                     Expanded(
                       child: _selectedContent == null
@@ -160,15 +172,17 @@ class _LogViewerScreenState extends State<LogViewerScreen> {
   }
 
   Widget _buildEmptyState() {
+    final tokens = context.themeTokens;
+
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.folder_open, size: 64, color: Colors.grey.shade300),
+          Icon(Icons.folder_open, size: 64, color: tokens.textMuted.withOpacity(0.45)),
           const SizedBox(height: 16),
           Text(
             '暂无日志文件',
-            style: TextStyle(fontSize: 16, color: Colors.grey.shade600),
+            style: TextStyle(fontSize: 16, color: tokens.textMuted),
           ),
         ],
       ),
@@ -176,12 +190,15 @@ class _LogViewerScreenState extends State<LogViewerScreen> {
   }
 
   Widget _buildFileSelector() {
+    final colorScheme = context.colors;
+    final tokens = context.themeTokens;
+
     return Container(
       height: 60,
       padding: const EdgeInsets.symmetric(horizontal: 8),
       decoration: BoxDecoration(
-        color: Colors.grey.shade100,
-        border: Border(bottom: BorderSide(color: Colors.grey.shade300)),
+        color: tokens.inputSurface,
+        border: Border(bottom: BorderSide(color: tokens.borderSubtle)),
       ),
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
@@ -203,10 +220,10 @@ class _LogViewerScreenState extends State<LogViewerScreen> {
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 12),
                 decoration: BoxDecoration(
-                  color: isSelected ? Colors.pink : Colors.white,
+                  color: isSelected ? colorScheme.primary : tokens.surfaceElevated,
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(
-                    color: isSelected ? Colors.pink : Colors.grey.shade300,
+                    color: isSelected ? colorScheme.primary : tokens.borderSubtle,
                   ),
                 ),
                 child: Row(
@@ -215,7 +232,7 @@ class _LogViewerScreenState extends State<LogViewerScreen> {
                     Text(
                       fileName,
                       style: TextStyle(
-                        color: isSelected ? Colors.white : Colors.black87,
+                        color: isSelected ? Colors.white : colorScheme.onSurface,
                         fontSize: 12,
                       ),
                     ),
@@ -226,7 +243,7 @@ class _LogViewerScreenState extends State<LogViewerScreen> {
                         child: Icon(
                           Icons.close,
                           size: 14,
-                          color: Colors.grey.shade500,
+                          color: tokens.textMuted,
                         ),
                       ),
                     ],
@@ -249,7 +266,7 @@ class _LogViewerScreenState extends State<LogViewerScreen> {
       itemCount: lines.length,
       itemBuilder: (context, index) {
         final line = lines[index];
-        final color = _getLogColor(line);
+        final color = _getLogColor(context, line);
 
         return SingleChildScrollView(
           scrollDirection: Axis.horizontal,
@@ -266,12 +283,14 @@ class _LogViewerScreenState extends State<LogViewerScreen> {
     );
   }
 
-  Color _getLogColor(String line) {
-    if (line.contains('❌')) return Colors.red.shade700;
-    if (line.contains('✅')) return Colors.green.shade700;
-    if (line.contains('⚠️')) return Colors.orange.shade700;
-    if (line.contains('🌐') || line.contains('📥')) return Colors.blue.shade700;
-    if (line.contains('📦') || line.contains('⚡')) return Colors.purple.shade700;
-    return Colors.black87;
+  Color _getLogColor(BuildContext context, String line) {
+    final colorScheme = context.colors;
+    final tokens = context.themeTokens;
+    if (line.contains('❌')) return colorScheme.error;
+    if (line.contains('✅')) return tokens.success;
+    if (line.contains('⚠️')) return tokens.warning;
+    if (line.contains('🌐') || line.contains('📥')) return colorScheme.primary;
+    if (line.contains('📦') || line.contains('⚡')) return colorScheme.tertiary;
+    return colorScheme.onSurface.withOpacity(0.9);
   }
 }

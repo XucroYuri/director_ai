@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../models/character_sheet.dart';
+import '../theme/app_theme.dart';
 
 /// 角色设定卡片组件
 /// 显示角色的组合三视图（一张图包含正面、侧面、背面三个视角）
@@ -18,17 +19,15 @@ class CharacterSheetCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final tokens = context.themeTokens;
+
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [Colors.purple.shade50, Colors.pink.shade50],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
+        gradient: context.themeTokens.appBackgroundGradient,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.purple.shade200, width: 1),
+        border: Border.all(color: tokens.borderSubtle, width: 1),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -42,14 +41,14 @@ class CharacterSheetCard extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.6),
+                color: tokens.surfaceElevated.withOpacity(0.7),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Text(
                 sheet.description,
                 style: TextStyle(
                   fontSize: 12,
-                  color: Colors.grey.shade700,
+                  color: tokens.textMuted,
                 ),
               ),
             ),
@@ -64,16 +63,15 @@ class CharacterSheetCard extends StatelessWidget {
   }
 
   Widget _buildHeader(BuildContext context) {
+    final colorScheme = context.colors;
+    final tokens = context.themeTokens;
+
     return Row(
       children: [
         Container(
           padding: const EdgeInsets.all(6),
           decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [Colors.purple.shade400, Colors.pink.shade400],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
+            gradient: tokens.brandGradient,
             borderRadius: BorderRadius.circular(8),
           ),
           child: Icon(
@@ -100,7 +98,7 @@ class CharacterSheetCard extends StatelessWidget {
                     sheet.role,
                     style: TextStyle(
                       fontSize: 11,
-                      color: Colors.grey.shade600,
+                      color: tokens.textMuted,
                     ),
                   ),
                   const SizedBox(width: 6),
@@ -108,7 +106,7 @@ class CharacterSheetCard extends StatelessWidget {
                     '${sheet.status.icon} ${sheet.status.displayName}',
                     style: TextStyle(
                       fontSize: 11,
-                      color: _getStatusColor(),
+                      color: _getStatusColor(context),
                       fontWeight: FontWeight.w500,
                     ),
                   ),
@@ -125,17 +123,17 @@ class CharacterSheetCard extends StatelessWidget {
             padding: EdgeInsets.zero,
             constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
             style: IconButton.styleFrom(
-              backgroundColor: Colors.purple.shade100,
-              foregroundColor: Colors.purple.shade700,
+              backgroundColor: colorScheme.primary.withOpacity(0.16),
+              foregroundColor: colorScheme.primary,
             ),
           ),
         if (isGenerating)
-          const SizedBox(
+          SizedBox(
             width: 20,
             height: 20,
             child: CircularProgressIndicator(
               strokeWidth: 2,
-              color: Colors.purple,
+              color: colorScheme.primary,
             ),
           ),
       ],
@@ -144,6 +142,8 @@ class CharacterSheetCard extends StatelessWidget {
 
   /// 构建组合三视图显示（一张图包含三个视角）- 可点击放大
   Widget _buildCombinedView(BuildContext context) {
+    final colorScheme = context.colors;
+    final tokens = context.themeTokens;
     final imageUrl = sheet.referenceImageUrl;
     final hasImage = imageUrl != null && imageUrl.isNotEmpty;
 
@@ -154,13 +154,11 @@ class CharacterSheetCard extends StatelessWidget {
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
           decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [Colors.purple.shade600, Colors.pink.shade500],
-            ),
+            gradient: tokens.highlightGradient,
             borderRadius: BorderRadius.circular(8),
             boxShadow: [
               BoxShadow(
-                color: Colors.purple.withOpacity(0.3),
+                color: colorScheme.primary.withOpacity(0.3),
                 blurRadius: 8,
                 offset: const Offset(0, 2),
               ),
@@ -212,19 +210,19 @@ class CharacterSheetCard extends StatelessWidget {
             height: 160, // 增大展示区域
             decoration: BoxDecoration(
               gradient: LinearGradient(
-                colors: [Colors.white, Colors.purple.shade50],
+                colors: [tokens.surfaceElevated, tokens.inputSurface],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
-                color: hasImage ? Colors.purple.shade300 : Colors.grey.shade300,
+                color: hasImage ? colorScheme.primary.withOpacity(0.45) : tokens.borderSubtle,
                 width: hasImage ? 2 : 1,
               ),
               boxShadow: hasImage
                   ? [
                       BoxShadow(
-                        color: Colors.purple.withOpacity(0.15),
+                        color: colorScheme.primary.withOpacity(0.15),
                         blurRadius: 16,
                         offset: const Offset(0, 4),
                       ),
@@ -254,8 +252,8 @@ class CharacterSheetCard extends StatelessWidget {
                                     child: CircularProgressIndicator(
                                       value: progress.progress,
                                       strokeWidth: 3,
-                                      backgroundColor: Colors.purple.shade100,
-                                      color: Colors.purple.shade600,
+                                      backgroundColor: colorScheme.primary.withOpacity(0.2),
+                                      color: colorScheme.primary,
                                     ),
                                   ),
                                   const SizedBox(height: 8),
@@ -263,7 +261,7 @@ class CharacterSheetCard extends StatelessWidget {
                                     '加载中 ${((progress.progress ?? 0) * 100).toInt()}%',
                                     style: TextStyle(
                                       fontSize: 11,
-                                      color: Colors.purple.shade600,
+                                      color: colorScheme.primary,
                                     ),
                                   ),
                                 ],
@@ -289,7 +287,7 @@ class CharacterSheetCard extends StatelessWidget {
                                     icon: const Icon(Icons.refresh, size: 14),
                                     label: const Text('重试'),
                                     style: TextButton.styleFrom(
-                                      foregroundColor: Colors.purple,
+                                      foregroundColor: colorScheme.primary,
                                     ),
                                   ),
                                 ],
@@ -324,15 +322,15 @@ class CharacterSheetCard extends StatelessWidget {
                         Container(
                           padding: const EdgeInsets.all(12),
                           decoration: BoxDecoration(
-                            color: Colors.grey.shade100,
+                            color: tokens.inputSurface,
                             shape: BoxShape.circle,
                           ),
-                          child: Icon(Icons.image_not_supported, color: Colors.grey.shade400, size: 32),
+                          child: Icon(Icons.image_not_supported, color: tokens.textMuted.withOpacity(0.5), size: 32),
                         ),
                         const SizedBox(height: 8),
                         Text(
                           '待生成三视图',
-                          style: TextStyle(fontSize: 12, color: Colors.grey.shade500),
+                          style: TextStyle(fontSize: 12, color: tokens.textMuted),
                         ),
                       ],
                     ),
@@ -376,18 +374,20 @@ class CharacterSheetCard extends StatelessWidget {
     }
   }
 
-  Color _getStatusColor() {
+  Color _getStatusColor(BuildContext context) {
+    final colorScheme = context.colors;
+    final tokens = context.themeTokens;
     switch (sheet.status) {
       case CharacterSheetStatus.pending:
-        return Colors.grey.shade600;
+        return tokens.textMuted;
       case CharacterSheetStatus.generating:
-        return Colors.blue.shade600;
+        return colorScheme.primary;
       case CharacterSheetStatus.partial:
-        return Colors.orange.shade600;
+        return tokens.warning;
       case CharacterSheetStatus.completed:
-        return Colors.green.shade600;
+        return tokens.success;
       case CharacterSheetStatus.failed:
-        return Colors.red.shade600;
+        return colorScheme.error;
     }
   }
 }
@@ -578,28 +578,32 @@ class CharacterSheetsList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = context.colors;
+    final tokens = context.themeTokens;
+
     if (sheets.isEmpty) {
       return Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: Colors.grey.shade100,
+          color: tokens.inputSurface,
           borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: tokens.borderSubtle),
         ),
         child: Column(
           children: [
-            Icon(Icons.people_outline, size: 36, color: Colors.grey.shade400),
+            Icon(Icons.people_outline, size: 36, color: tokens.textMuted.withOpacity(0.55)),
             const SizedBox(height: 8),
             Text(
               '暂无角色设定',
               style: TextStyle(
                 fontSize: 14,
-                color: Colors.grey.shade600,
+                color: tokens.textMuted,
                 fontWeight: FontWeight.w500,
               ),
             ),
             Text(
               '确认剧本后将自动生成角色三视图',
-              style: TextStyle(fontSize: 11, color: Colors.grey.shade500),
+              style: TextStyle(fontSize: 11, color: tokens.textMuted.withOpacity(0.9)),
             ),
           ],
         ),
@@ -614,14 +618,14 @@ class CharacterSheetsList extends StatelessWidget {
           padding: const EdgeInsets.only(bottom: 8),
           child: Row(
             children: [
-              Icon(Icons.people, color: Colors.purple.shade700, size: 16),
+              Icon(Icons.people, color: colorScheme.primary, size: 16),
               const SizedBox(width: 6),
               Text(
                 '角色设定 (${sheets.length}人)',
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.bold,
-                  color: Colors.purple.shade900,
+                  color: colorScheme.onSurface,
                 ),
               ),
               const Spacer(),
@@ -631,7 +635,7 @@ class CharacterSheetsList extends StatelessWidget {
                   icon: const Icon(Icons.refresh, size: 14),
                   label: const Text('重新生成全部', style: TextStyle(fontSize: 12)),
                   style: TextButton.styleFrom(
-                    foregroundColor: Colors.purple.shade700,
+                    foregroundColor: colorScheme.primary,
                     padding: const EdgeInsets.symmetric(horizontal: 8),
                     minimumSize: Size.zero,
                     tapTargetSize: MaterialTapTargetSize.shrinkWrap,

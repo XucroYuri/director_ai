@@ -10,6 +10,7 @@ import '../models/script.dart';
 import '../utils/video_cache_manager.dart';
 import '../services/gallery_service.dart';
 import '../screens/scene_media_viewer.dart';
+import '../theme/app_theme.dart';
 
 /// 剧本展示组件
 /// 显示剧本标题、场景列表、图片和视频
@@ -35,31 +36,26 @@ class ScreenplayCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = context.colors;
+    final tokens = context.themeTokens;
+
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
       decoration: BoxDecoration(
-        // 深色玻璃态背景
-        gradient: const LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            Color(0xFF1E1B2E), // 深紫色
-            Color(0xFF2D2640), // 稍浅的深紫
-          ],
-        ),
+        gradient: tokens.drawerBackgroundGradient,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: const Color(0xFF8B5CF6).withOpacity(0.3),
+          color: tokens.borderStrong.withOpacity(0.45),
           width: 1,
         ),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF8B5CF6).withOpacity(0.2),
+            color: colorScheme.primary.withOpacity(0.2),
             offset: const Offset(0, 8),
             blurRadius: 24,
           ),
           BoxShadow(
-            color: Colors.black.withOpacity(0.3),
+            color: Colors.black.withOpacity(context.isDarkMode ? 0.26 : 0.08),
             offset: const Offset(0, 4),
             blurRadius: 12,
           ),
@@ -88,7 +84,7 @@ class ScreenplayCard extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
-                        color: Colors.white.withOpacity(0.7),
+                        color: tokens.textMuted,
                         letterSpacing: -0.2,
                       ),
                     ),
@@ -98,13 +94,13 @@ class ScreenplayCard extends StatelessWidget {
                         screenplay.scenes.any((s) => s.status == SceneStatus.pending))
                       Container(
                         decoration: BoxDecoration(
-                          gradient: const LinearGradient(
-                            colors: [Color(0xFF10B981), Color(0xFF059669)],
+                          gradient: LinearGradient(
+                            colors: [tokens.success, tokens.success.withOpacity(0.78)],
                           ),
                           borderRadius: BorderRadius.circular(20),
                           boxShadow: [
                             BoxShadow(
-                              color: const Color(0xFF10B981).withOpacity(0.4),
+                              color: tokens.success.withOpacity(0.35),
                               offset: const Offset(0, 2),
                               blurRadius: 8,
                             ),
@@ -144,13 +140,11 @@ class ScreenplayCard extends StatelessWidget {
                         padding: const EdgeInsets.only(left: 8),
                         child: Container(
                           decoration: BoxDecoration(
-                            gradient: const LinearGradient(
-                              colors: [Color(0xFFEC4899), Color(0xFF8B5CF6)],
-                            ),
+                            gradient: tokens.highlightGradient,
                             borderRadius: BorderRadius.circular(20),
                             boxShadow: [
                               BoxShadow(
-                                color: const Color(0xFFEC4899).withOpacity(0.4),
+                                color: colorScheme.secondary.withOpacity(0.35),
                                 offset: const Offset(0, 2),
                                 blurRadius: 8,
                               ),
@@ -214,11 +208,14 @@ class ScreenplayCard extends StatelessWidget {
   }
 
   Widget _buildHeader(BuildContext context) {
+    final colorScheme = context.colors;
+    final tokens = context.themeTokens;
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       decoration: BoxDecoration(
         border: Border(
-          bottom: BorderSide(color: Colors.white.withOpacity(0.1), width: 1),
+          bottom: BorderSide(color: tokens.borderSubtle, width: 1),
         ),
       ),
       child: Row(
@@ -227,13 +224,11 @@ class ScreenplayCard extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [Color(0xFF8B5CF6), Color(0xFFEC4899)],
-              ),
+              gradient: tokens.brandGradient,
               borderRadius: BorderRadius.circular(10),
               boxShadow: [
                 BoxShadow(
-                  color: const Color(0xFF8B5CF6).withOpacity(0.4),
+                  color: colorScheme.primary.withOpacity(0.32),
                   blurRadius: 12,
                   offset: const Offset(0, 2),
                 ),
@@ -248,8 +243,8 @@ class ScreenplayCard extends StatelessWidget {
               children: [
                 Text(
                   screenplay.scriptTitle,
-                  style: const TextStyle(
-                    color: Colors.white,
+                  style: TextStyle(
+                    color: colorScheme.onSurface,
                     fontSize: 17,
                     fontWeight: FontWeight.w600,
                     letterSpacing: -0.3,
@@ -259,7 +254,7 @@ class ScreenplayCard extends StatelessWidget {
                 Text(
                   'ID: ${screenplay.taskId}',
                   style: TextStyle(
-                    color: Colors.white.withOpacity(0.5),
+                    color: tokens.textMuted,
                     fontSize: 11,
                   ),
                 ),
@@ -268,14 +263,14 @@ class ScreenplayCard extends StatelessWidget {
           ),
           Row(
             children: [
-              _buildStatusChip(),
+              _buildStatusChip(context),
               const SizedBox(width: 8),
               // 查看完整剧本按钮
               Container(
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.1),
+                  color: tokens.surfaceGlass.withOpacity(context.isDarkMode ? 0.35 : 0.7),
                   borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.white.withOpacity(0.2)),
+                  border: Border.all(color: tokens.borderSubtle),
                 ),
                 child: Material(
                   color: Colors.transparent,
@@ -287,12 +282,12 @@ class ScreenplayCard extends StatelessWidget {
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(Icons.description, size: 14, color: Colors.white.withOpacity(0.8)),
+                          Icon(Icons.description, size: 14, color: colorScheme.primary),
                           const SizedBox(width: 4),
                           Text(
                             '剧本',
                             style: TextStyle(
-                              color: Colors.white.withOpacity(0.8),
+                              color: colorScheme.primary,
                               fontSize: 12,
                               fontWeight: FontWeight.w500,
                             ),
@@ -310,23 +305,25 @@ class ScreenplayCard extends StatelessWidget {
     );
   }
 
-  Widget _buildStatusChip() {
+  Widget _buildStatusChip(BuildContext context) {
+    final colorScheme = context.colors;
+    final tokens = context.themeTokens;
     String label;
     Color color;
     List<Color> gradientColors;
 
     if (screenplay.hasFailed) {
       label = '部分失败';
-      color = const Color(0xFFF97316);
-      gradientColors = [const Color(0xFFF97316), const Color(0xFFEA580C)];
+      color = tokens.warning;
+      gradientColors = [tokens.warning, tokens.warning.withOpacity(0.8)];
     } else if (screenplay.isAllCompleted) {
       label = '已完成';
-      color = const Color(0xFF10B981);
-      gradientColors = [const Color(0xFF10B981), const Color(0xFF059669)];
+      color = tokens.success;
+      gradientColors = [tokens.success, tokens.success.withOpacity(0.8)];
     } else {
       label = '进行中';
-      color = const Color(0xFF8B5CF6);
-      gradientColors = [const Color(0xFF8B5CF6), const Color(0xFFEC4899)];
+      color = colorScheme.primary;
+      gradientColors = [colorScheme.primary, colorScheme.secondary];
     }
 
     return Container(
@@ -360,12 +357,14 @@ class ScreenplayCard extends StatelessWidget {
   }
 
   Widget _buildProgressBar(BuildContext context) {
+    final colorScheme = context.colors;
+    final tokens = context.themeTokens;
     final progress = screenplay.progress;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
         border: Border(
-          bottom: BorderSide(color: Colors.white.withOpacity(0.1), width: 1),
+          bottom: BorderSide(color: tokens.borderSubtle, width: 1),
         ),
       ),
       child: Row(
@@ -373,13 +372,13 @@ class ScreenplayCard extends StatelessWidget {
           Expanded(
             child: Text(
               screenplay.statusDescription,
-              style: TextStyle(fontSize: 13, color: Colors.white.withOpacity(0.7)),
+              style: TextStyle(fontSize: 13, color: tokens.textMuted),
             ),
           ),
           // 进度百分比带渐变效果
           ShaderMask(
-            shaderCallback: (bounds) => const LinearGradient(
-              colors: [Color(0xFF8B5CF6), Color(0xFFEC4899)],
+            shaderCallback: (bounds) => LinearGradient(
+              colors: [colorScheme.primary, colorScheme.secondary],
             ).createShader(bounds),
             child: Text(
               '${(progress * 100).round()}%',
@@ -392,7 +391,7 @@ class ScreenplayCard extends StatelessWidget {
             child: Container(
               height: 6,
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.1),
+                color: tokens.inputSurface,
                 borderRadius: BorderRadius.circular(3),
               ),
               child: FractionallySizedBox(
@@ -400,13 +399,13 @@ class ScreenplayCard extends StatelessWidget {
                 widthFactor: progress,
                 child: Container(
                   decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      colors: [Color(0xFF8B5CF6), Color(0xFFEC4899)],
+                    gradient: LinearGradient(
+                      colors: [colorScheme.primary, colorScheme.secondary],
                     ),
                     borderRadius: BorderRadius.circular(3),
                     boxShadow: [
                       BoxShadow(
-                        color: const Color(0xFF8B5CF6).withOpacity(0.5),
+                        color: colorScheme.primary.withOpacity(0.35),
                         blurRadius: 6,
                       ),
                     ],
@@ -422,6 +421,8 @@ class ScreenplayCard extends StatelessWidget {
 
   /// 显示编辑提示词对话框
   void _showEditPromptDialog(BuildContext context, int sceneId, String currentPrompt, String narration) {
+    final colorScheme = context.colors;
+    final tokens = context.themeTokens;
     final controller = TextEditingController(text: currentPrompt);
     final sceneNum = screenplay.scenes.indexWhere((s) => s.sceneId == sceneId) + 1;
 
@@ -431,7 +432,7 @@ class ScreenplayCard extends StatelessWidget {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: Row(
           children: [
-            const Icon(Icons.edit, color: Color(0xFF8B5CF6)),
+            Icon(Icons.edit, color: colorScheme.primary),
             const SizedBox(width: 8),
             Expanded(
               child: Text(
@@ -448,7 +449,7 @@ class ScreenplayCard extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: const Color(0xFFF3F4F6),
+                color: tokens.inputSurface,
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Column(
@@ -456,12 +457,12 @@ class ScreenplayCard extends StatelessWidget {
                 children: [
                   const Text(
                     '场景旁白：',
-                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFF8E8E93)),
+                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFF607086)),
                   ),
                   const SizedBox(height: 4),
                   Text(
                     narration,
-                    style: const TextStyle(fontSize: 13, color: Color(0xFF1C1C1E)),
+                    style: TextStyle(fontSize: 13, color: colorScheme.onSurface),
                   ),
                 ],
               ),
@@ -478,18 +479,18 @@ class ScreenplayCard extends StatelessWidget {
               decoration: InputDecoration(
                 hintText: '输入新的视频提示词...',
                 filled: true,
-                fillColor: const Color(0xFFF9FAFB),
+                fillColor: tokens.inputSurface,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
-                  borderSide: const BorderSide(color: Color(0xFFE5E7EB)),
+                  borderSide: BorderSide(color: tokens.borderSubtle),
                 ),
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
-                  borderSide: const BorderSide(color: Color(0xFFE5E7EB)),
+                  borderSide: BorderSide(color: tokens.borderSubtle),
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
-                  borderSide: const BorderSide(color: Color(0xFF8B5CF6), width: 2),
+                  borderSide: BorderSide(color: colorScheme.primary, width: 2),
                 ),
               ),
               style: const TextStyle(fontSize: 13),
@@ -543,7 +544,7 @@ class ScreenplayCard extends StatelessWidget {
               }
             },
             style: FilledButton.styleFrom(
-              backgroundColor: const Color(0xFF8B5CF6),
+              backgroundColor: colorScheme.primary,
             ),
             child: const Text('保存并重试'),
           ),
@@ -573,15 +574,17 @@ class _SceneCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = context.colors;
+    final tokens = context.themeTokens;
+
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        // 半透明玻璃效果
-        color: Colors.white.withOpacity(0.08),
+        color: tokens.surfaceGlass.withOpacity(context.isDarkMode ? 0.38 : 0.75),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: Colors.white.withOpacity(0.15),
+          color: tokens.borderSubtle,
           width: 1,
         ),
       ),
@@ -595,13 +598,11 @@ class _SceneCard extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFF8B5CF6), Color(0xFFEC4899)],
-                  ),
+                  gradient: tokens.brandGradient,
                   borderRadius: BorderRadius.circular(8),
                   boxShadow: [
                     BoxShadow(
-                      color: const Color(0xFF8B5CF6).withOpacity(0.3),
+                      color: colorScheme.primary.withOpacity(0.25),
                       blurRadius: 8,
                       offset: const Offset(0, 2),
                     ),
@@ -621,7 +622,7 @@ class _SceneCard extends StatelessWidget {
                 child: Text(
                   scene.status.displayName,
                   style: TextStyle(
-                    color: _getStatusColor(),
+                    color: _getStatusColor(context),
                     fontSize: 13,
                     fontWeight: FontWeight.w500,
                   ),
@@ -631,13 +632,13 @@ class _SceneCard extends StatelessWidget {
               if (scene.status == SceneStatus.pending && onStartGeneration != null) ...[
                 Container(
                   decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      colors: [Color(0xFF10B981), Color(0xFF059669)],
+                    gradient: LinearGradient(
+                      colors: [tokens.success, tokens.success.withOpacity(0.8)],
                     ),
                     borderRadius: BorderRadius.circular(16),
                     boxShadow: [
                       BoxShadow(
-                        color: const Color(0xFF10B981).withOpacity(0.4),
+                        color: tokens.success.withOpacity(0.35),
                         blurRadius: 8,
                         offset: const Offset(0, 2),
                       ),
@@ -671,25 +672,25 @@ class _SceneCard extends StatelessWidget {
                 Container(
                   margin: const EdgeInsets.only(right: 6),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.1),
+                    color: tokens.surfaceGlass,
                     borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: const Color(0xFF8B5CF6).withOpacity(0.5)),
+                    border: Border.all(color: colorScheme.primary.withOpacity(0.45)),
                   ),
                   child: Material(
                     color: Colors.transparent,
                     child: InkWell(
                       onTap: onEditPrompt,
                       borderRadius: BorderRadius.circular(16),
-                      child: const Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Icon(Icons.edit, size: 12, color: Color(0xFFA78BFA)),
-                            SizedBox(width: 4),
+                            Icon(Icons.edit, size: 12, color: colorScheme.primary),
+                            const SizedBox(width: 4),
                             Text(
                               '修改提示词',
-                              style: TextStyle(color: Color(0xFFA78BFA), fontSize: 11, fontWeight: FontWeight.w500),
+                              style: TextStyle(color: colorScheme.primary, fontSize: 11, fontWeight: FontWeight.w500),
                             ),
                           ],
                         ),
@@ -699,13 +700,13 @@ class _SceneCard extends StatelessWidget {
                 ),
                 Container(
                   decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      colors: [Color(0xFFF97316), Color(0xFFEA580C)],
+                    gradient: LinearGradient(
+                      colors: [tokens.warning, tokens.warning.withOpacity(0.8)],
                     ),
                     borderRadius: BorderRadius.circular(16),
                     boxShadow: [
                       BoxShadow(
-                        color: const Color(0xFFF97316).withOpacity(0.4),
+                        color: tokens.warning.withOpacity(0.35),
                         blurRadius: 8,
                         offset: const Offset(0, 2),
                       ),
@@ -743,21 +744,21 @@ class _SceneCard extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.05),
+              color: tokens.inputSurface.withOpacity(context.isDarkMode ? 0.65 : 0.9),
               borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: Colors.white.withOpacity(0.1)),
+              border: Border.all(color: tokens.borderSubtle),
             ),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Icon(Icons.format_quote, size: 16, color: const Color(0xFFEC4899).withOpacity(0.8)),
+                Icon(Icons.format_quote, size: 16, color: colorScheme.secondary.withOpacity(0.85)),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
                     scene.narration,
                     style: TextStyle(
                       fontSize: 13,
-                      color: Colors.white.withOpacity(0.85),
+                      color: colorScheme.onSurface.withOpacity(0.9),
                       height: 1.5,
                       fontStyle: FontStyle.italic,
                     ),
@@ -774,31 +775,35 @@ class _SceneCard extends StatelessWidget {
           const SizedBox(height: 10),
 
           // 提示词展示（可折叠）
-          _PromptSection(scene: scene, isDarkTheme: true),
+          _PromptSection(scene: scene, isDarkTheme: context.isDarkMode),
         ],
       ),
     );
   }
 
-  Color _getStatusColor() {
+  Color _getStatusColor(BuildContext context) {
+    final colorScheme = context.colors;
+    final tokens = context.themeTokens;
     switch (scene.status) {
       case SceneStatus.pending:
-        return Colors.white.withOpacity(0.5);
+        return tokens.textMuted;
       case SceneStatus.imageGenerating:
-        return const Color(0xFF60A5FA);
+        return colorScheme.primary;
       case SceneStatus.imageCompleted:
-        return const Color(0xFF22D3EE);
+        return colorScheme.secondary;
       case SceneStatus.videoGenerating:
-        return const Color(0xFFA78BFA);
+        return colorScheme.tertiary;
       case SceneStatus.completed:
-        return const Color(0xFF34D399);
+        return tokens.success;
       case SceneStatus.failed:
-        return const Color(0xFFF87171);
+        return colorScheme.error;
     }
   }
 
   /// 构建媒体展示区域（图片和视频）
   Widget _buildMediaSection(BuildContext context) {
+    final colorScheme = context.colors;
+    final tokens = context.themeTokens;
     List<Widget> children = [];
 
     // 添加分镜图
@@ -811,20 +816,20 @@ class _SceneCard extends StatelessWidget {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
               decoration: BoxDecoration(
-                color: const Color(0xFF8B5CF6).withOpacity(0.2),
+                color: colorScheme.primary.withOpacity(0.18),
                 borderRadius: BorderRadius.circular(6),
               ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(Icons.image, color: Color(0xFFA78BFA), size: 12),
+                  Icon(Icons.image, color: colorScheme.primary, size: 12),
                   const SizedBox(width: 4),
-                  const Text(
+                  Text(
                     '分镜图',
                     style: TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.w600,
-                      color: Color(0xFFA78BFA),
+                      color: colorScheme.primary,
                     ),
                   ),
                 ],
@@ -849,7 +854,7 @@ class _SceneCard extends StatelessWidget {
                         return Container(
                           height: 180,
                           width: double.infinity,
-                          color: Colors.grey.shade200,
+                          color: tokens.inputSurface,
                           child: Center(
                             child: CircularProgressIndicator(
                               value: progress.progress,
@@ -861,14 +866,14 @@ class _SceneCard extends StatelessWidget {
                         return Container(
                           height: 180,
                           width: double.infinity,
-                          color: Colors.red.shade50,
+                          color: colorScheme.error.withOpacity(context.isDarkMode ? 0.22 : 0.1),
                           child: Center(
                             child: Column(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                Icon(Icons.error, color: Colors.red),
-                                SizedBox(height: 8),
-                                Text('图片加载失败'),
+                                Icon(Icons.error, color: colorScheme.error),
+                                const SizedBox(height: 8),
+                                Text('图片加载失败', style: TextStyle(color: colorScheme.onSurface)),
                               ],
                             ),
                           ),
@@ -922,14 +927,14 @@ class _SceneCard extends StatelessWidget {
             // 视频标签
             Row(
               children: [
-                const Icon(Icons.videocam, color: Color(0xFF8B5CF6), size: 14),
+                Icon(Icons.videocam, color: colorScheme.primary, size: 14),
                 const SizedBox(width: 4),
-                const Text(
+                Text(
                   '分镜视频',
                   style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w500,
-                    color: Color(0xFF8B5CF6),
+                    color: colorScheme.primary,
                   ),
                 ),
               ],
@@ -988,20 +993,20 @@ class _SceneCard extends StatelessWidget {
           height: 60,
           width: double.infinity,
           decoration: BoxDecoration(
-            color: const Color(0xFFEC4899).withOpacity(0.1),
+            color: colorScheme.secondary.withOpacity(0.14),
             borderRadius: BorderRadius.circular(10),
           ),
-          child: const Center(
+          child: Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 SizedBox(
                   width: 18,
                   height: 18,
-                  child: CircularProgressIndicator(color: Color(0xFFEC4899), strokeWidth: 2),
+                  child: CircularProgressIndicator(color: colorScheme.secondary, strokeWidth: 2),
                 ),
-                SizedBox(height: 6),
-                Text('正在生成分镜视频...', style: TextStyle(color: Color(0xFFEC4899), fontSize: 12)),
+                const SizedBox(height: 6),
+                Text('正在生成分镜视频...', style: TextStyle(color: colorScheme.secondary, fontSize: 12)),
               ],
             ),
           ),
@@ -1016,20 +1021,20 @@ class _SceneCard extends StatelessWidget {
           height: 60,
           width: double.infinity,
           decoration: BoxDecoration(
-            color: const Color(0xFF8B5CF6).withOpacity(0.1),
+            color: colorScheme.primary.withOpacity(0.14),
             borderRadius: BorderRadius.circular(10),
           ),
-          child: const Center(
+          child: Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 SizedBox(
                   width: 18,
                   height: 18,
-                  child: CircularProgressIndicator(color: Color(0xFF8B5CF6), strokeWidth: 2),
+                  child: CircularProgressIndicator(color: colorScheme.primary, strokeWidth: 2),
                 ),
-                SizedBox(height: 6),
-                Text('正在生成分镜图...', style: TextStyle(color: Color(0xFF8B5CF6), fontSize: 12)),
+                const SizedBox(height: 6),
+                Text('正在生成分镜图...', style: TextStyle(color: colorScheme.primary, fontSize: 12)),
               ],
             ),
           ),
@@ -1044,16 +1049,16 @@ class _SceneCard extends StatelessWidget {
           height: 80,
           width: double.infinity,
           decoration: BoxDecoration(
-            color: Colors.grey.shade100,
+            color: tokens.inputSurface,
             borderRadius: BorderRadius.circular(12),
           ),
           child: Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.image_not_supported, color: Colors.grey.shade400, size: 24),
-                SizedBox(height: 4),
-                Text('等待生成', style: TextStyle(color: Colors.grey.shade500, fontSize: 12)),
+                Icon(Icons.image_not_supported, color: tokens.textMuted.withOpacity(0.55), size: 24),
+                const SizedBox(height: 4),
+                Text('等待生成', style: TextStyle(color: tokens.textMuted, fontSize: 12)),
               ],
             ),
           ),
@@ -1318,18 +1323,18 @@ class _PromptSection extends StatefulWidget {
 }
 
 class _PromptSectionState extends State<_PromptSection> {
-  bool _isExpanded = false;
-
   @override
   Widget build(BuildContext context) {
     final isDark = widget.isDarkTheme;
+    final colorScheme = context.colors;
+    final tokens = context.themeTokens;
     
     return Theme(
       data: Theme.of(context).copyWith(
         dividerColor: Colors.transparent,
         expansionTileTheme: ExpansionTileThemeData(
-          iconColor: isDark ? const Color(0xFFA78BFA) : const Color(0xFF8B5CF6),
-          collapsedIconColor: isDark ? const Color(0xFFA78BFA) : const Color(0xFF8B5CF6),
+          iconColor: colorScheme.primary,
+          collapsedIconColor: colorScheme.primary,
         ),
       ),
       child: ExpansionTile(
@@ -1339,14 +1344,14 @@ class _PromptSectionState extends State<_PromptSection> {
             Icon(
               Icons.code,
               size: 14,
-              color: isDark ? const Color(0xFFA78BFA) : const Color(0xFF8B5CF6),
+              color: colorScheme.primary,
             ),
             const SizedBox(width: 6),
             Text(
               '查看提示词',
               style: TextStyle(
                 fontSize: 13,
-                color: isDark ? const Color(0xFFA78BFA) : const Color(0xFF8B5CF6),
+                color: colorScheme.primary,
                 fontWeight: FontWeight.w500,
               ),
             ),
@@ -1357,9 +1362,9 @@ class _PromptSectionState extends State<_PromptSection> {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: isDark ? Colors.black.withOpacity(0.2) : const Color(0xFFF2F2F7),
+              color: isDark ? tokens.surfaceGlass.withOpacity(0.35) : tokens.inputSurface,
               borderRadius: BorderRadius.circular(10),
-              border: isDark ? Border.all(color: Colors.white.withOpacity(0.1)) : null,
+              border: Border.all(color: tokens.borderSubtle),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -1368,14 +1373,14 @@ class _PromptSectionState extends State<_PromptSection> {
                 if (widget.scene.characterDescription.isNotEmpty) ...[
                   Row(
                     children: [
-                      Icon(Icons.person, size: 14, color: isDark ? const Color(0xFFEC4899) : const Color(0xFF8B5CF6)),
+                      Icon(Icons.person, size: 14, color: colorScheme.secondary),
                       const SizedBox(width: 4),
                       Text(
                         '人物特征描述:',
                         style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.w600,
-                          color: isDark ? const Color(0xFFEC4899) : const Color(0xFF8B5CF6),
+                          color: colorScheme.secondary,
                         ),
                       ),
                     ],
@@ -1385,7 +1390,7 @@ class _PromptSectionState extends State<_PromptSection> {
                     widget.scene.characterDescription,
                     style: TextStyle(
                       fontSize: 12,
-                      color: isDark ? Colors.white.withOpacity(0.6) : const Color(0xFF8E8E93),
+                      color: tokens.textMuted,
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -1395,7 +1400,7 @@ class _PromptSectionState extends State<_PromptSection> {
                   style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
-                    color: isDark ? Colors.white.withOpacity(0.9) : const Color(0xFF1C1C1E),
+                    color: colorScheme.onSurface.withOpacity(0.92),
                   ),
                 ),
                 const SizedBox(height: 4),
@@ -1403,7 +1408,7 @@ class _PromptSectionState extends State<_PromptSection> {
                   widget.scene.imagePrompt,
                   style: TextStyle(
                     fontSize: 12,
-                    color: isDark ? Colors.white.withOpacity(0.6) : const Color(0xFF8E8E93),
+                    color: tokens.textMuted,
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -1412,7 +1417,7 @@ class _PromptSectionState extends State<_PromptSection> {
                   style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
-                    color: isDark ? Colors.white.withOpacity(0.9) : const Color(0xFF1C1C1E),
+                    color: colorScheme.onSurface.withOpacity(0.92),
                   ),
                 ),
                 const SizedBox(height: 4),
@@ -1420,7 +1425,7 @@ class _PromptSectionState extends State<_PromptSection> {
                   widget.scene.videoPrompt,
                   style: TextStyle(
                     fontSize: 12,
-                    color: isDark ? Colors.white.withOpacity(0.6) : const Color(0xFF8E8E93),
+                    color: tokens.textMuted,
                   ),
                 ),
               ],
@@ -1854,46 +1859,50 @@ class _FullScriptDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = context.colors;
+    final tokens = context.themeTokens;
+
     return Dialog(
       backgroundColor: Colors.transparent,
       child: Container(
         width: MediaQuery.of(context).size.width * 0.9,
         height: MediaQuery.of(context).size.height * 0.8,
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: tokens.surfaceElevated,
           borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: tokens.borderSubtle),
         ),
         child: Column(
           children: [
             // 标题栏
             Container(
               padding: const EdgeInsets.all(16),
-              decoration: const BoxDecoration(
-                color: Color(0xFFF2F2F7),
+              decoration: BoxDecoration(
+                color: tokens.inputSurface,
                 border: Border(
-                  bottom: BorderSide(color: Color(0xFFF3F4F6), width: 0.5),
+                  bottom: BorderSide(color: tokens.borderSubtle, width: 1),
                 ),
-                borderRadius: BorderRadius.only(
+                borderRadius: const BorderRadius.only(
                   topLeft: Radius.circular(14),
                   topRight: Radius.circular(14),
                 ),
               ),
               child: Row(
                 children: [
-                  const Icon(Icons.description, color: Color(0xFF8B5CF6)),
+                  Icon(Icons.description, color: colorScheme.primary),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
                       screenplay.scriptTitle,
-                      style: const TextStyle(
-                        color: Color(0xFF1C1C1E),
+                      style: TextStyle(
+                        color: colorScheme.onSurface,
                         fontSize: 17,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
                   ),
                   IconButton(
-                    icon: const Icon(Icons.close, color: Color(0xFF8B5CF6)),
+                    icon: Icon(Icons.close, color: colorScheme.primary),
                     onPressed: () => Navigator.pop(context),
                   ),
                 ],
@@ -1908,17 +1917,17 @@ class _FullScriptDialog extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     // 剧本信息
-                    _buildInfoRow('场景数量', '${screenplay.scenes.length} 个'),
-                    _buildInfoRow('状态', screenplay.statusDescription),
+                    _buildInfoRow(context, '场景数量', '${screenplay.scenes.length} 个'),
+                    _buildInfoRow(context, '状态', screenplay.statusDescription),
                     const SizedBox(height: 16),
 
                     // 场景列表
-                    const Text(
+                    Text(
                       '场景详情',
                       style: TextStyle(
                         fontSize: 17,
                         fontWeight: FontWeight.w600,
-                        color: Color(0xFF1C1C1E),
+                        color: colorScheme.onSurface,
                       ),
                     ),
                     const SizedBox(height: 12),
@@ -1938,12 +1947,12 @@ class _FullScriptDialog extends StatelessWidget {
             // 底部复制按钮
             Container(
               padding: const EdgeInsets.all(16),
-              decoration: const BoxDecoration(
-                color: Color(0xFFF2F2F7),
+              decoration: BoxDecoration(
+                color: tokens.inputSurface,
                 border: Border(
-                  top: BorderSide(color: Color(0xFFF3F4F6), width: 0.5),
+                  top: BorderSide(color: tokens.borderSubtle, width: 1),
                 ),
-                borderRadius: BorderRadius.only(
+                borderRadius: const BorderRadius.only(
                   bottomLeft: Radius.circular(14),
                   bottomRight: Radius.circular(14),
                 ),
@@ -1955,6 +1964,9 @@ class _FullScriptDialog extends StatelessWidget {
                       onPressed: () => _copyFullScript(context),
                       icon: const Icon(Icons.copy),
                       label: const Text('复制完整剧本'),
+                      style: FilledButton.styleFrom(
+                        backgroundColor: colorScheme.primary,
+                      ),
                     ),
                   ),
                 ],
@@ -1966,19 +1978,22 @@ class _FullScriptDialog extends StatelessWidget {
     );
   }
 
-  Widget _buildInfoRow(String label, String value) {
+  Widget _buildInfoRow(BuildContext context, String label, String value) {
+    final colorScheme = context.colors;
+    final tokens = context.themeTokens;
+
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
         children: [
           Text(
             '$label: ',
-            style: const TextStyle(
+            style: TextStyle(
               fontWeight: FontWeight.w600,
-              color: Color(0xFF1C1C1E),
+              color: colorScheme.onSurface,
             ),
           ),
-          Text(value, style: const TextStyle(color: Color(0xFF8E8E93))),
+          Text(value, style: TextStyle(color: tokens.textMuted)),
         ],
       ),
     );
@@ -2012,10 +2027,11 @@ class _FullScriptDialog extends StatelessWidget {
     await Clipboard.setData(ClipboardData(text: buffer.toString()));
 
     if (context.mounted) {
+      final tokens = context.themeTokens;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('剧本已复制到剪贴板'),
-          backgroundColor: Colors.green,
+        SnackBar(
+          content: const Text('剧本已复制到剪贴板'),
+          backgroundColor: tokens.success,
         ),
       );
     }
@@ -2034,13 +2050,16 @@ class _SceneDetailCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = context.colors;
+    final tokens = context.themeTokens;
+
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: const Color(0xFFF2F2F7),
+        color: tokens.inputSurface,
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: const Color(0xFFF3F4F6), width: 0.5),
+        border: Border.all(color: tokens.borderSubtle, width: 1),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -2051,7 +2070,7 @@ class _SceneDetailCard extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF8B5CF6),
+                  color: colorScheme.primary,
                   borderRadius: BorderRadius.circular(6),
                 ),
                 child: Text(
@@ -2067,13 +2086,13 @@ class _SceneDetailCard extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
-                  color: _getStatusColor().withOpacity(0.15),
+                  color: _getStatusColor(context).withOpacity(0.15),
                   borderRadius: BorderRadius.circular(6),
                 ),
                 child: Text(
                   scene.status.displayName,
                   style: TextStyle(
-                    color: _getStatusColor(),
+                    color: _getStatusColor(context),
                     fontSize: 11,
                     fontWeight: FontWeight.w600,
                   ),
@@ -2084,30 +2103,32 @@ class _SceneDetailCard extends StatelessWidget {
           const SizedBox(height: 10),
 
           // 旁白
-          _buildSection('旁白', scene.narration),
+          _buildSection(context, '旁白', scene.narration),
           if (scene.characterDescription.isNotEmpty) ...[
             const SizedBox(height: 6),
-            _buildSection('人物', scene.characterDescription),
+            _buildSection(context, '人物', scene.characterDescription),
           ],
           const SizedBox(height: 6),
-          _buildSection('图片提示', scene.imagePrompt, isSmall: true),
+          _buildSection(context, '图片提示', scene.imagePrompt, isSmall: true),
           const SizedBox(height: 6),
-          _buildSection('视频提示', scene.videoPrompt, isSmall: true),
+          _buildSection(context, '视频提示', scene.videoPrompt, isSmall: true),
         ],
       ),
     );
   }
 
-  Widget _buildSection(String label, String content, {bool isSmall = false}) {
+  Widget _buildSection(BuildContext context, String label, String content, {bool isSmall = false}) {
+    final colorScheme = context.colors;
+    final tokens = context.themeTokens;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           label,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 11,
             fontWeight: FontWeight.w600,
-            color: Color(0xFF8E8E93),
+            color: tokens.textMuted,
           ),
         ),
         const SizedBox(height: 2),
@@ -2115,7 +2136,7 @@ class _SceneDetailCard extends StatelessWidget {
           content,
           style: TextStyle(
             fontSize: isSmall ? 11 : 12,
-            color: const Color(0xFF1C1C1E),
+            color: colorScheme.onSurface,
             height: 1.4,
           ),
         ),
@@ -2123,20 +2144,22 @@ class _SceneDetailCard extends StatelessWidget {
     );
   }
 
-  Color _getStatusColor() {
+  Color _getStatusColor(BuildContext context) {
+    final colorScheme = context.colors;
+    final tokens = context.themeTokens;
     switch (scene.status) {
       case SceneStatus.pending:
-        return const Color(0xFF8E8E93);
+        return tokens.textMuted;
       case SceneStatus.imageGenerating:
-        return const Color(0xFF8B5CF6);
+        return colorScheme.primary;
       case SceneStatus.imageCompleted:
-        return const Color(0xFF32ADE6);
+        return colorScheme.secondary;
       case SceneStatus.videoGenerating:
-        return const Color(0xFFEC4899);
+        return colorScheme.tertiary;
       case SceneStatus.completed:
-        return const Color(0xFF34C759);
+        return tokens.success;
       case SceneStatus.failed:
-        return const Color(0xFFFF3B30);
+        return colorScheme.error;
     }
   }
 }

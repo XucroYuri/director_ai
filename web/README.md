@@ -49,6 +49,23 @@ start.bat
 ./start.sh
 ```
 
+### Docker (Recommended for local dependency isolation)
+
+Run from repository root:
+
+```bash
+cp web/.env.example web/.env
+docker compose --env-file web/.env up -d --build
+```
+
+Open: `http://localhost:7861`
+
+Stop:
+
+```bash
+docker compose down
+```
+
 ### Manual Configuration
 
 If you prefer manual setup, copy `.env.example` to `.env` and edit:

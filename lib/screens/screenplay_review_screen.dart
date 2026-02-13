@@ -4,6 +4,7 @@ import '../models/screenplay_draft.dart';
 import '../widgets/scene_review_card.dart';
 import '../widgets/character_sheet_card.dart';
 import '../providers/chat_provider.dart';
+import '../theme/app_theme.dart';
 
 /// 剧本确认页面
 /// 用户在此页面查看、编辑剧本，确认后进入图片/视频生成阶段
@@ -43,22 +44,23 @@ class _ScreenplayReviewScreenState extends State<ScreenplayReviewScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = context.colors;
+    final tokens = context.themeTokens;
+
     return Scaffold(
-      // 浅紫灰背景
-      backgroundColor: const Color(0xFFFAF9FC),
-      // 现代简洁风格 App Bar
+      backgroundColor: colorScheme.surface,
       appBar: AppBar(
-        title: const Text(
+        title: Text(
           '剧本确认',
           style: TextStyle(
             fontSize: 17,
-            fontWeight: FontWeight.w600,
-            color: Color(0xFF1C1C1E),
+            fontWeight: FontWeight.w700,
+            color: colorScheme.onSurface,
             letterSpacing: -0.5,
           ),
         ),
         centerTitle: true,
-        backgroundColor: Colors.white,
+        backgroundColor: colorScheme.surface.withOpacity(0.9),
         elevation: 0,
         scrolledUnderElevation: 0,
         shadowColor: Colors.transparent,
@@ -80,7 +82,7 @@ class _ScreenplayReviewScreenState extends State<ScreenplayReviewScreen> {
                 style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
               ),
               style: TextButton.styleFrom(
-                foregroundColor: const Color(0xFF8B5CF6),
+                foregroundColor: colorScheme.primary,
                 padding: const EdgeInsets.symmetric(horizontal: 12),
               ),
             ),
@@ -91,70 +93,64 @@ class _ScreenplayReviewScreenState extends State<ScreenplayReviewScreen> {
           // 直接使用 provider.currentDraft，因为它会与 draftController 同步
           final currentDraft = provider.currentDraft ?? widget.draft;
 
-          return Column(
-            children: [
-              // 可滚动内容区域
-              Expanded(
-                child: CustomScrollView(
-                  slivers: [
-                    // 剧本信息区域
-                    SliverToBoxAdapter(child: _buildDraftInfo(context, currentDraft)),
-
-                    // 分隔线 - 细线
-                    const SliverToBoxAdapter(child: Divider(height: 1, thickness: 0.5, color: Color(0xFFE5E7EB))),
-
-                    // 角色设定区域（需要监听变化）
-                    SliverToBoxAdapter(child: _buildCharacterSheetsSection(context, currentDraft)),
-
-                    // 分隔线 - 细线
-                    const SliverToBoxAdapter(child: Divider(height: 1, thickness: 0.5, color: Color(0xFFE5E7EB))),
-
-                    // 场景列表
-                    SliverList(
-                      delegate: SliverChildBuilderDelegate(
-                        (context, index) {
-                          final scene = currentDraft.scenes[index];
-                          return SceneReviewCard(
-                            scene: scene,
-                            totalScenes: currentDraft.scenes.length,
-                            onNarrationChanged: (newNarration) {
-                              final provider = context.read<ChatProvider>();
-                              provider.draftController.updateSceneNarration(scene.sceneId, newNarration);
-                            },
-                            onEmotionalHookChanged: (newHook) {
-                              final provider = context.read<ChatProvider>();
-                              provider.draftController.updateSceneEmotionalHook(scene.sceneId, newHook);
-                            },
-                            onCharacterDescriptionChanged: (newDesc) {
-                              final provider = context.read<ChatProvider>();
-                              provider.draftController.updateSceneCharacterDescription(scene.sceneId, newDesc);
-                            },
-                            onImagePromptChanged: (newPrompt) {
-                              final provider = context.read<ChatProvider>();
-                              provider.draftController.updateSceneImagePrompt(scene.sceneId, newPrompt);
-                            },
-                            onVideoPromptChanged: (newPrompt) {
-                              final provider = context.read<ChatProvider>();
-                              provider.draftController.updateSceneVideoPrompt(scene.sceneId, newPrompt);
-                            },
-                            onRegenerate: widget.onRegenerate != null
-                                ? () => _handleRegenerateScene(scene.sceneId)
-                                : null,
-                          );
-                        },
-                        childCount: currentDraft.scenes.length,
+          return Container(
+            decoration: BoxDecoration(gradient: tokens.appBackgroundGradient),
+            child: Column(
+              children: [
+                // 可滚动内容区域
+                Expanded(
+                  child: CustomScrollView(
+                    slivers: [
+                      SliverToBoxAdapter(child: _buildDraftInfo(context, currentDraft)),
+                      SliverToBoxAdapter(
+                        child: Divider(height: 1, thickness: 1, color: tokens.borderSubtle),
                       ),
-                    ),
-
-                    // 底部间距
-                    const SliverToBoxAdapter(child: SizedBox(height: 8)),
-                  ],
+                      SliverToBoxAdapter(child: _buildCharacterSheetsSection(context, currentDraft)),
+                      SliverToBoxAdapter(
+                        child: Divider(height: 1, thickness: 1, color: tokens.borderSubtle),
+                      ),
+                      SliverList(
+                        delegate: SliverChildBuilderDelegate(
+                          (context, index) {
+                            final scene = currentDraft.scenes[index];
+                            return SceneReviewCard(
+                              scene: scene,
+                              totalScenes: currentDraft.scenes.length,
+                              onNarrationChanged: (newNarration) {
+                                final provider = context.read<ChatProvider>();
+                                provider.draftController.updateSceneNarration(scene.sceneId, newNarration);
+                              },
+                              onEmotionalHookChanged: (newHook) {
+                                final provider = context.read<ChatProvider>();
+                                provider.draftController.updateSceneEmotionalHook(scene.sceneId, newHook);
+                              },
+                              onCharacterDescriptionChanged: (newDesc) {
+                                final provider = context.read<ChatProvider>();
+                                provider.draftController.updateSceneCharacterDescription(scene.sceneId, newDesc);
+                              },
+                              onImagePromptChanged: (newPrompt) {
+                                final provider = context.read<ChatProvider>();
+                                provider.draftController.updateSceneImagePrompt(scene.sceneId, newPrompt);
+                              },
+                              onVideoPromptChanged: (newPrompt) {
+                                final provider = context.read<ChatProvider>();
+                                provider.draftController.updateSceneVideoPrompt(scene.sceneId, newPrompt);
+                              },
+                              onRegenerate: widget.onRegenerate != null
+                                  ? () => _handleRegenerateScene(scene.sceneId)
+                                  : null,
+                            );
+                          },
+                          childCount: currentDraft.scenes.length,
+                        ),
+                      ),
+                      const SliverToBoxAdapter(child: SizedBox(height: 8)),
+                    ],
+                  ),
                 ),
-              ),
-
-              // 底部操作区域（固定在底部）
-              _buildBottomActions(context),
-            ],
+                _buildBottomActions(context),
+              ],
+            ),
           );
         },
       ),
@@ -164,16 +160,19 @@ class _ScreenplayReviewScreenState extends State<ScreenplayReviewScreen> {
 
   /// 构建剧本信息区域
   Widget _buildDraftInfo(BuildContext context, ScreenplayDraft currentDraft) {
+    final colorScheme = context.colors;
+    final tokens = context.themeTokens;
+
     return Container(
       margin: const EdgeInsets.fromLTRB(12, 12, 12, 8),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: tokens.surfaceElevated,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: const Color(0xFFE5E7EB), width: 0.5),
+        border: Border.all(color: tokens.borderSubtle, width: 1),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.03),
+            color: Colors.black.withOpacity(context.isDarkMode ? 0.24 : 0.04),
             offset: const Offset(0, 2),
             blurRadius: 8,
           ),
@@ -185,15 +184,15 @@ class _ScreenplayReviewScreenState extends State<ScreenplayReviewScreen> {
           // 标题行
           Row(
             children: [
-              const Icon(Icons.movie_creation, color: Color(0xFF8B5CF6), size: 20),
+              Icon(Icons.movie_creation, color: colorScheme.primary, size: 20),
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
                   currentDraft.title,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
-                    color: Color(0xFF1C1C1E),
+                    color: colorScheme.onSurface,
                     letterSpacing: -0.5,
                   ),
                 ),
@@ -228,24 +227,27 @@ class _ScreenplayReviewScreenState extends State<ScreenplayReviewScreen> {
     final hasCharacterSheets = currentDraft.hasCharacterSheets;
 
     if (!hasCharacterSheets) {
+      final tokens = context.themeTokens;
+
       // 显示提示信息
       return Container(
         margin: const EdgeInsets.all(12),
         padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
         decoration: BoxDecoration(
-          color: const Color(0xFFF8F9FA), // Light gray background
+          color: tokens.inputSurface,
           borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: tokens.borderSubtle),
         ),
-        child: const Row(
+        child: Row(
           children: [
-            Icon(Icons.info_outline, color: Color(0xFFEC4899), size: 16),
-            SizedBox(width: 8),
+            Icon(Icons.info_outline, color: context.colors.secondary, size: 16),
+            const SizedBox(width: 8),
             Expanded(
               child: Text(
                 '确认剧本后将自动生成主要角色的三视图',
                 style: TextStyle(
                   fontSize: 13,
-                  color: Color(0xFF8E8E93),
+                  color: tokens.textMuted,
                 ),
               ),
             ),
@@ -259,11 +261,12 @@ class _ScreenplayReviewScreenState extends State<ScreenplayReviewScreen> {
       margin: const EdgeInsets.all(12),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: context.themeTokens.surfaceElevated,
         borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: context.themeTokens.borderSubtle),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.08),
+            color: Colors.black.withOpacity(context.isDarkMode ? 0.24 : 0.08),
             offset: const Offset(0, 4),
             blurRadius: 16,
           ),
@@ -278,16 +281,19 @@ class _ScreenplayReviewScreenState extends State<ScreenplayReviewScreen> {
 
   /// 构建底部操作区域
   Widget _buildBottomActions(BuildContext context) {
+    final colorScheme = context.colors;
+    final tokens = context.themeTokens;
+
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.95),
+        color: tokens.surfaceElevated.withOpacity(context.isDarkMode ? 0.96 : 0.95),
         border: Border(
-          top: BorderSide(color: const Color(0xFFE5E7EB), width: 0.5),
+          top: BorderSide(color: tokens.borderSubtle, width: 1),
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
+            color: Colors.black.withOpacity(context.isDarkMode ? 0.24 : 0.04),
             offset: const Offset(0, -2),
             blurRadius: 12,
           ),
@@ -300,18 +306,18 @@ class _ScreenplayReviewScreenState extends State<ScreenplayReviewScreen> {
             // 反馈输入框 - 现代简约风格
             Container(
               decoration: BoxDecoration(
-                color: const Color(0xFFF9FAFB),
+                color: tokens.inputSurface,
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: const Color(0xFFE5E7EB), width: 1),
+                border: Border.all(color: tokens.borderSubtle, width: 1),
               ),
               child: TextField(
                 controller: _feedbackController,
                 maxLines: 1,
-                style: const TextStyle(fontSize: 15),
-                decoration: const InputDecoration(
+                style: TextStyle(fontSize: 15, color: colorScheme.onSurface),
+                decoration: InputDecoration(
                   hintText: '输入修改建议（可选）...',
-                  hintStyle: TextStyle(fontSize: 14, color: Color(0xFF9CA3AF)),
-                  contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  hintStyle: TextStyle(fontSize: 14, color: tokens.textMuted),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                   border: InputBorder.none,
                 ),
               ),
@@ -330,7 +336,7 @@ class _ScreenplayReviewScreenState extends State<ScreenplayReviewScreen> {
                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.white),
                 ),
                 style: FilledButton.styleFrom(
-                  backgroundColor: const Color(0xFF8B5CF6),
+                  backgroundColor: colorScheme.primary,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
@@ -445,25 +451,28 @@ class _InfoPill extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = context.colors;
+    final tokens = context.themeTokens;
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            const Color(0xFF8B5CF6).withOpacity(0.15),
-            const Color(0xFFEC4899).withOpacity(0.1),
+            colorScheme.primary.withOpacity(context.isDarkMode ? 0.22 : 0.14),
+            colorScheme.secondary.withOpacity(context.isDarkMode ? 0.18 : 0.08),
           ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: const Color(0xFF8B5CF6).withOpacity(0.3),
+          color: colorScheme.primary.withOpacity(0.35),
           width: 1,
         ),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF8B5CF6).withOpacity(0.1),
+            color: colorScheme.primary.withOpacity(context.isDarkMode ? 0.18 : 0.1),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -475,9 +484,7 @@ class _InfoPill extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(4),
             decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [Color(0xFF8B5CF6), Color(0xFFEC4899)],
-              ),
+              gradient: tokens.brandGradient,
               borderRadius: BorderRadius.circular(6),
             ),
             child: Icon(icon, size: 10, color: Colors.white),
@@ -485,8 +492,8 @@ class _InfoPill extends StatelessWidget {
           const SizedBox(width: 6),
           Text(
             label,
-            style: const TextStyle(
-              color: Color(0xFF1C1C1E),
+            style: TextStyle(
+              color: colorScheme.onSurface,
               fontSize: 12,
               fontWeight: FontWeight.w600,
             ),

@@ -150,6 +150,42 @@ lib/
    flutter run
    ```
 
+### 本地依赖容器化（推荐）
+
+为避免本机安装过多 Python 依赖导致磁盘膨胀，`web/` 服务支持直接用 Docker 运行，并把运行数据写入 Docker volume（不落在仓库里）。
+
+1. **准备环境变量**
+   ```bash
+   cp web/.env.example web/.env
+   ```
+
+2. **启动容器**
+   ```bash
+   docker compose --env-file web/.env up -d --build
+   ```
+
+3. **查看日志**
+   ```bash
+   docker compose logs -f storyboard-web
+   ```
+
+4. **停止容器**
+   ```bash
+   docker compose down
+   ```
+
+### 本地清理
+
+仓库提供一键清理脚本，默认清理缓存与虚拟环境，不删除业务数据：
+
+```bash
+bash scripts/clean-local.sh
+```
+
+可选参数：
+- `--with-data`: 同时清理 `web/projects|outputs|exports|uploads` 运行数据
+- `--with-docker`: 额外执行 Docker 资源清理（含未使用镜像/volume）
+
 ## 📦 依赖说明
 
 ```yaml
@@ -386,4 +422,3 @@ A: 请检查：
 <p align="center">
   Made with ❤️ and Flutter
 </p>
-
