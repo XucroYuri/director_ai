@@ -33,8 +33,12 @@ fi
 PIP="$VENV_DIR/bin/pip"
 PY="$VENV_DIR/bin/python"
 
-echo "       Syncing dependencies..."
-"$PIP" install -r requirements.txt
+if ! "$PIP" show gradio >/dev/null 2>&1; then
+    echo "       Installing dependencies..."
+    "$PIP" install -r requirements.txt
+else
+    echo "       Dependencies OK"
+fi
 
 echo
 echo "[3/4] Checking configuration..."
